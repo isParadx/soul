@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.paradx.soul.mapper.DoctorMapper">
+
+    <resultMap id="BaseResultMap" type="com.paradx.soul.pojo.Doctor">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="intruduce" column="intruduce" jdbcType="LONGVARCHAR"/>
+            <result property="say" column="intruduce" jdbcType="LONGVARCHAR"/>
+            <result property="type" column="type" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,intruduce,type,
+        if_free
+    </sql>
+    <insert id="addDoctorInfo">
+        insert into doctor (id,name,intruduce,type,say) values (#{doctor.id}, #{doctor.name},#{doctor.intruduce},#{doctor.type},#{doctor.say})
+    </insert>
+    <update id="ChangeDoctor">
+        update doctor
+        <set>
+            <if test="name != null">name= #{name},</if>
+            <if test="intruduce != null">intruduce = #{intruduce},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="say != null">say= #{say},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="getAllDoctor" resultType="com.paradx.soul.pojo.Doctor">
+        select * from doctor
+        <if test="keywords != null">
+            where id like CONCAT('%', #{keywords}, '%')
+            or name like CONCAT('%', #{keywords}, '%')
+            or intruduce like CONCAT('%', #{keywords}, '%')
+            or type like CONCAT('%', #{keywords}, '%')
+        </if>
+    </select>
+
+    <delete id="deldoc">
+        delete  from doctor where id=#{id}
+    </delete>
+
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.paradx.soul.mapper.AdviceMapper">
+
+    <resultMap id="BaseResultMap" type="com.paradx.soul.pojo.Advice">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="context" column="context" jdbcType="VARCHAR"/>
+            <result property="time" column="time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,context,time
+    </sql>
+    <insert id="insertadvice">
+         insert into advice (context,time)
+        values (#{advice},#{nowtime})
+    </insert>
+    <select id="getadvice" resultType="com.paradx.soul.pojo.Advice">
+        select * from advice
+    </select>
+</mapper>

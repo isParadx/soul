@@ -1,0 +1,101 @@
+<template>
+  <div class="coze-chat-container"></div>
+</template>
+
+<script setup>
+import { onMounted, onUnmounted, ref } from 'vue';
+
+// 存储聊天客户端实例
+const chatClient = ref(null);
+
+// 动态加载Coze SDK并初始化
+onMounted(() => {
+  // 检查是否已加载过SDK
+  if (window.CozeWebSDK) {
+    initCozeChat();
+    return;
+  }
+
+  // 动态创建script标签加载SDK
+  const script = document.createElement('script');
+  script.src = 'https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.15/libs/cn/index.js';
+  
+  script.onload = () => {
+    console.log('Coze SDK loaded successfully');
+    initCozeChat();
+  };
+  
+  script.onerror = () => {
+    console.error('Failed to load Coze SDK');
+  };
+  
+  document.head.appendChild(script);
+});
+
+// 初始化Coze聊天客户端
+const initCozeChat = () => {
+  if (window.CozeWebSDK) {
+    chatClient.value = new window.CozeWebSDK.WebChatClient({
+      config: {
+        type: 'bot',
+        bot_id: '7529781739347066919',
+        isIframe: true,
+      },
+      auth: {
+        type: 'token',
+        token: 'pat_scK1NRq8h8aiIicmmucvvR5AXhwT5bkwNAPja8XCjAqcWKipFi5N876f4MiH2Nug',
+        onRefreshToken: async () => {
+          return 'new_token';
+        }
+      },
+      userInfo: {
+        id: 'user',
+        url: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/coze-logo.png',
+        nickname: 'User',
+      },
+      ui: {
+        base: {
+          icon: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/chatsdk-logo.png',
+          layout: 'pc',
+          lang: 'en',
+          zIndex: 1000
+        },
+        header: {
+          isShow: true,
+          isNeedClose: true,
+        },
+        asstBtn: {
+          isNeed: true
+        },
+        footer: {
+          isShow: true,
+          expressionText: 'Powered by ...',
+        },
+        chatBot: {
+          title: '理理',
+          uploadable: true,
+          width: 390,
+        },
+      },
+    });
+  } else {
+    console.error('CozeWebSDK is not loaded');
+  }
+};
+
+// 组件卸载时清理
+onUnmounted(() => {
+  // 如果SDK提供了销毁方法，可以在这里调用
+  if (chatClient.value && typeof chatClient.value.destroy === 'function') {
+    chatClient.value.destroy();
+  }
+});
+</script>
+
+<style scoped>
+.coze-chat-container {
+  /* 可以添加自定义样式 */
+  color: aliceblue;
+}
+</style>
+    

@@ -1,0 +1,155 @@
+<template>
+  <view class="container">
+    <!-- 头像和昵称区域 -->
+    <view class="profile">
+      <view class="avatar">
+        <image class="avatar-img" src="/static/user.png" />
+      </view>
+      <text class="avatar-nickname">{{nickname}}</text>
+    </view>
+  
+    <!-- 菜单区域 -->
+    <view class="menu">
+      <view v-for="(item, index) in menuItems" :key="index" class="menu-item" @click="navigateTo(item.url)">
+        <view class="menu-item-left">
+          <view :class="item.icon"></view>
+          <text class="menu-text">{{ item.text }}</text>
+        </view>
+        <text class="arrow">></text>
+      </view>
+    </view>
+    
+    <!-- 退出按钮 -->
+    <button class="logout-button" @click="logout">退出</button>
+  </view>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      nickname: 'hi!欢迎使用',
+      menuItems: [
+        { icon: 'icon-info', text: '个人信息', url: '/pages/tabbar/Myself/profile/profile' },
+        { icon: 'icon-lock', text: '密码修改', url: '/pages/tabbar/Myself/password/password' },
+        { icon: 'icon-advice;', text: '意见反馈', url: '/pages/tabbar/Myself/advice/advice' }
+      ]
+    };
+  },
+  onLoad() {
+  	uni.getStorage({
+  			  key:'token',
+  			  success:(res)=>{
+  				 this.token=res.data;
+  			}
+  	}) 
+  },
+  methods: { 
+    navigateTo(url) {
+		uni.navigateTo({
+			url: url
+		});
+    },
+    logout() {
+      uni.removeStorage({
+		  key:'token',
+		  success:function(){
+			  uni.clearStorage()
+			  uni.showToast({
+				  title:'退出成功，请重新登录',
+				  icon:'none',
+				  duration: 1000
+			  }),
+			  setTimeout(() => {
+			          uni.navigateTo({
+			            url: '/pages/loAre/login/login'
+			          });
+			        }, 1000);
+			  
+		  }
+	  })
+    }
+  }
+};
+</script>
+
+<style>
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #e6e6fa;
+  padding: 20px;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.avatar {
+	background-image: url('');
+  width: 80px;
+  height: 80px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  margin-right: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.avatar-img {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+}
+
+.avatar-nickname {
+  font-size: 20px;
+  color: #333;
+}
+
+.menu {
+  width: 100%;
+}
+
+.menu-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.menu-item-left {
+  display: flex;
+  flex-direction: row;
+}
+
+.menu-text {
+  margin-left: 15px;
+  font-size: 18px;
+  color: #007aff;
+}
+
+.arrow {
+  font-size: 18px;
+  color: #666;
+}
+
+.logout-button {
+  width: 200px;
+  padding: 10px;
+  margin-top: 20px;
+  background: linear-gradient(135deg, #3f51b5, #5c6bc0);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 18px;
+}
+</style>

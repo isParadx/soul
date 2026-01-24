@@ -1,0 +1,523 @@
+<template>
+  <view class="doctor-detail-container">
+    <!-- 医生头像 -->
+    <view class="doctor-avatar">
+      <image class="doctor-avatar-image" src="/static/user.png" />
+    </view>
+
+    <!-- 医生姓名 -->
+    <view class="doctor-name">{{ doctor.name }}</view>
+
+    <!-- 内置tabbar -->
+    <view class="tabs">
+      <view class="tab-item" @click="switchTab(0)" :class="{ active: currentTab === 0 }">个人简介</view>
+      <view class="tab-item" @click="switchTab(1)" :class="{ active: currentTab === 1 }">擅长领域</view>
+      <view class="tab-item" @click="switchTab(2)" :class="{ active: currentTab === 2 }">医师寄语</view>
+    </view>
+
+    <!-- 医生信息 -->
+    <view class="doctor-info">
+      <view v-show="currentTab === 0" class="description-content">
+        {{ doctor.intruduce }}
+      </view>
+      <view v-show="currentTab === 1" class="specialty-tags">
+        <view class="tag" v-for="(item, index) in doctor.type" :key="index">{{ item }}</view>
+      </view>
+	  <view v-show="currentTab === 2" class="description-content">
+	    {{doctor.say}}
+	  </view>
+    </view>
+
+    <!-- 咨询须知 -->
+    <view class="consultation-notice-container">
+      <view class="consultation-notice-title">咨询须知</view>
+      <view class="consultation-notice-content">
+        1、咨询为预约服务，您可选择老师进行预约，每次咨询50分钟或60分钟。
+        <br>
+        2、预约成功后，您的预约需咨询师确认并安排咨询时间，请留意您的订单状态。
+        <br>
+        3、当订单状态为"准备进行"时，意味着您在24小时之后-48小时之前可随时拜访心理咨询室
+		<br>
+        4、因不可抗力因素变更时间或取消咨询预约，请提前12小时告知咨询师。
+      </view>
+    </view>
+    <!-- 立即咨询按钮 -->
+    <button class="consult-now" @click="consultNow">立即咨询</button>
+  </view>
+  
+  <view class="modal" v-if="isShowModal">
+    <view class="modal-content">
+     <view class="modal-header">
+       选择预约日期
+       <view class="smailtabs">
+         <view class="tab-item" @click="selectDate(date)" :class="{ active: selectedDate === date }" v-for="(date, index) in dates" :key="index">
+           {{ date }}
+         </view>
+       </view>
+     </view>
+      <view class="modal-body">
+        <view class="time-picker">
+          <view 
+            v-for="time in availableTimes" 
+            :class="{'selected': time.selected, 'unavailable': !time.available}"
+            :key="time.time"
+            @click="selectTime(time.time)">
+            {{ time.time }}
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button @click="confirmBooking">确认预约</button>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+export default {
+data() {
+  return {
+    id: 0,
+    doctor: {},
+	token:'',
+	user:{},
+    currentTab: 0,
+    isShowModal: false, // 控制弹窗显示
+    selectedDate: '', // 选择的日期
+    selectedTime: '', // 选择的时间段
+    availableTimes: [ // 可用时间段
+      { time: '9:00-10:00', selected: false, available: true },
+      { time: '10:30-11:30', selected: false, available: true },
+      { time: '13:00-14:00', selected: false, available: true },
+      { time: '14:30-15:30', selected: false, available: true },
+      { time: '16:00-17:00', selected: false, available: true },
+      { time: '19:00-20:00', selected: false, available: true },
+    ],
+    dates: this.getAvailableDates() // 可用日期
+  };
+},
+  onLoad(opt) {
+	this.id=opt.docId;
+	this.getDoctor(this.id);
+	uni.getStorage({
+			  key:'token',
+			  success:(res)=>{
+				 this.token=res.data;
+				 this.getuserInfo()
+			  }
+	}) 
+  },
+  methods: {
+	getDoctor(keywords) {
+	  uni.request({
+	    url: this.$u.baseURL + '/doctor/getAllDocter',
+	    method: 'GET',
+	    data: {
+	      "keywords": this.id
+	    },
+	    success: (res) => {
+	      if (res.data.code == 200) {
+	        const r= res.data.data;
+			r[0].type = r[0].type.split(',').map(tag => tag.trim()); // 分割字符串并去除空格
+			this.doctor=r[0];
+	      }
+	    },
+	    fail: (err) => {
+	      uni.showToast({
+	        title: '请求失败，请重试', // 提示的内容
+	        icon: 'none' // 没有图标
+	      });
+	    }
+	  });
+	},
+	
+	//获取用户信息请求
+	getuserInfo(){
+		uni.request({
+		  url:this.$u.baseURL+'/user/getUserInfo',
+		  method: 'GET',
+		  header:{
+			  "token":this.token,
+		  },
+		  success: (res) => {
+		   this.user=res.data.data.loginUser;
+		  },
+		  fail: () => {
+		    uni.showToast({
+		      title: '网络请求失败',
+		      icon: 'none'
+		    });
+		  }
+		});
+	},
+	
+	
+	
+    switchTab(index) {
+      this.currentTab = index;
+    },
+     consultNow() {
+        this.isShowModal = true;
+        this.selectedDate = this.dates[0]; // 默认选择第一个日期
+        this.updateAvailableTimes(); // 更新可用时间段
+		console.log(this.selectedDate)
+      },
+    
+     getAvailableDates() {
+       const dates = [];
+       const baseDate = new Date(); // 保存原始日期
+       for (let i = 0; i < 3; i++) {
+        const date = new Date(baseDate); // 每次循环都从原始日期开始
+			date.setDate(date.getDate() + i);
+			const year = date.getFullYear();
+			const month = (date.getMonth() + 1).toString().padStart(2, '0');
+			const day = date.getDate().toString().padStart(2, '0');
+			dates.push(`${year}-${month}.${day}`);
+       }
+       return dates;
+     },
+	 passTimeNotChoose(){ 
+		 if(this.selectedDate==this.dates[0]){
+			 //过期时间不可选
+			  this.availableTimes.forEach((item) => {
+			 		item.selected=false;
+			  })
+			 //先根据当前时间判断，将过期时间段不可选
+			 const date = new Date();
+			 //获取当前的时间时,分
+			 const hour = parseInt(date.getHours().toString().padStart(2, '0'));
+			 const min =parseInt(date.getMinutes().toString().padStart(2, '0'));
+			 //过期时间不可选
+			  this.availableTimes.forEach((timeSlot) => {
+			 			 timeSlot.available=true
+			 	 const res=timeSlot.time.split('-')[0].split(':')
+			 	 const reshour = parseInt(res[0], 10);
+			 	 const resmin = parseInt(res[1], 10);
+			 			if (hour > reshour || (hour === reshour && min > resmin)) {
+			 			        timeSlot.available = false;
+			 			    }
+			  })
+		 }else{
+			 if(this.selectedDate!=this.dates[0]){
+			 	this.availableTimes.forEach((item)=>{
+						item.selected=false;
+			 			item.available=true;
+			 	})
+			 }
+		}
+	 },
+    
+      updateAvailableTimes() {
+		this.passTimeNotChoose();
+		//数据库出现的时间不可选
+		uni.request({
+			url: this.$u.baseURL+'/consult/checkOrder',
+			method: 'GET',
+			data:{
+				"keyid":this.id
+			},
+			success: (res) => {
+				const resTimes=res.data.data;
+				resTimes.forEach((item)=>{
+					const parts=item.appointmentTime.split('/')
+					const resDate= parts[0];//获取该项预约的日期
+					const restime= parts[1];//获取该项预约的时间
+					
+					console.log(item.docId)
+					console.log(this.id)
+					
+					if(item.docId==this.id){
+						if(this.selectedDate==resDate){
+							this.availableTimes.forEach((tim)=>{
+								if(restime==tim.time){
+									tim.available=false
+								}
+							})
+						}
+					}
+					
+			 	})
+			},
+			fail: (err) => {
+				uni.showToast({
+					title: '请求失败，请重试',
+					icon: 'none'
+				});
+			}
+		});	
+      },
+    
+      selectDate(date) {
+		  console.log(date)
+        this.selectedDate = date;
+        this.updateAvailableTimes(); // 更新可用时间段
+      },
+    
+      selectTime(time) {
+        this.availableTimes.forEach((item) => {
+          item.selected = item.time === time;
+        });
+        this.selectedTime = time;
+      },
+    
+      confirmBooking() {
+        // 这里添加预约逻辑
+		if(this.selectedTime==''){
+			uni.showToast({
+				title: '请选择预约时间',
+				icon: 'none'
+			});
+		}else{
+			uni.request({
+				url: this.$u.baseURL+'/consult/setOrder',
+				method: 'POST',
+				data:{
+					"docId":this.id,
+					"stuId":this.user.userid,
+					"appointmentTime":this.selectedDate+'/'+this.selectedTime
+				},
+				success: (res) => {
+					uni.showToast({
+					  title: '预约成功',
+					  icon: 'success'
+					});
+					this.isShowModal = false;
+				},
+				fail: (err) => {
+					uni.showToast({
+						title: '请求失败，请重试',
+						icon: 'none'
+					});
+				}
+			});	
+			
+		}
+      },
+  }
+};
+</script>
+
+<style>
+.doctor-detail-container {
+  height: 100%;
+  background-color: #e6e6fa;
+  padding: 15px;
+}
+
+.doctor-avatar {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.doctor-avatar-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+
+.doctor-name {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+  margin-top: 20px;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-item.active {
+  border-bottom-color: #007aff;
+}
+
+.doctor-info {
+  margin-top: 20px;
+}
+
+.description-content {
+  font-size: 14px;
+  color: #666;
+  text-indent: 2em; /* 首行缩进 */
+}
+
+.specialty-tags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border-radius: 15px;
+  color: #333;
+  font-size: 12px;
+}
+
+.consultation-notice-container {
+  background-color: #f5f5f5;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 5px;
+}
+
+.consultation-notice-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.consultation-notice-content {
+  font-size: 14px;
+  color: #666;
+}
+
+.doctor-message-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #e8f0fe; /* 医师寄语背景色 */
+  border-radius: 5px;
+}
+
+.doctor-message-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.doctor-message-content {
+  font-size: 14px;
+  color: #333;
+}
+
+.consult-now {
+  display: block;
+  width: 100%;
+  height: 40px;
+  line-height: 40px;
+  background-color: #007aff;
+  color: white;
+  text-align: center;
+  border-radius: 5px;
+  margin-top: 30px;
+  font-size: 16px;
+}
+
+
+
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  width: 90%;
+  max-width: 300px;
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: row;
+  font-weight: bold;
+}
+
+.date-picker {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 10px;
+}
+
+.date-picker view {
+  cursor: pointer;
+  padding: 5px;
+  border: 1px solid #007aff;
+}
+
+.date-picker view.selected {
+  border-color: green;
+}
+
+.time-picker {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction:row;
+  gap: 10px;
+}
+
+.time-picker view {
+  cursor: pointer;
+  padding: 5px;
+  border: 1px solid #007aff;
+  width: 45%;
+}
+
+.time-picker view.selected {
+  border-color: green;
+}
+
+.time-picker view.unavailable {
+  border-color: gray;
+  color: gray;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.modal-footer button {
+  padding: 10px 20px;
+  background-color: #007aff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+}
+
+.smailtabs {
+  display: flex;
+  flex-direction: row;
+  margin-top: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-item.active {
+  border-bottom-color: #007aff;
+}
+
+</style>

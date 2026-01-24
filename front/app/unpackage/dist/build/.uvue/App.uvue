@@ -1,0 +1,37 @@
+
+	let firstBackTime = 0
+	const __sfc__ = defineApp({
+		onLaunch: function () {
+			console.log('App Launch')
+		},
+		onShow: function () {
+			console.log('App Show')
+		},
+		onHide: function () {
+			console.log('App Hide')
+		},
+
+		onLastPageBackPress: function () {
+			console.log('App LastPageBackPress')
+			if (firstBackTime == 0) {
+				uni.showToast({
+					title: '再按一次退出应用',
+					position: 'bottom',
+				})
+				firstBackTime = Date.now()
+				setTimeout(() => {
+					firstBackTime = 0
+				}, 2000)
+			} else if (Date.now() - firstBackTime < 2000) {
+				firstBackTime = Date.now()
+				uni.exit()
+			}
+		},
+
+		onExit: function () {
+			console.log('App Exit')
+		},
+	})
+
+export default __sfc__
+const GenAppStyles = [utsMapOf([["logo", utsMapOf([["", utsMapOf([["fontFamily", "iconfont logo"], ["fontSize", 160], ["fontStyle", "normal"], ["WebkitFontSmoothing", "antialiased"], ["MozOsxFontSmoothing", "grayscale"]])], [".main ", utsMapOf([["color", "#333333"], ["textAlign", "left"], ["marginBottom", 30], ["lineHeight", 1], ["height", 110], ["marginTop", -50], ["overflow", "hidden"], ["zoom", 1]])]])], ["nav-tabs", padStyleMapOf(utsMapOf([["position", "relative"]]))], ["nav-more", utsMapOf([[".nav-tabs ", utsMapOf([["position", "absolute"], ["right", 0], ["bottom", 0], ["height", 42], ["lineHeight", "42px"], ["color", "#666666"]])]])], ["content", utsMapOf([[".tab-container ", utsMapOf([["display", "none"]])]])], ["main", padStyleMapOf(utsMapOf([["paddingTop", 30], ["paddingRight", 100], ["paddingBottom", 30], ["paddingLeft", 100], ["width", 960], ["marginTop", 0], ["marginRight", "auto"], ["marginBottom", 0], ["marginLeft", "auto"]]))], ["helps", padStyleMapOf(utsMapOf([["marginTop", 40]]))], ["icon_lists", padStyleMapOf(utsMapOf([["!width", "100%"], ["overflow", "hidden"], ["zoom", 1]]))], ["icon", utsMapOf([[".icon_lists ", utsMapOf([["height", 100], ["lineHeight", "100px"], ["fontSize", 42], ["marginTop", 10], ["marginRight", "auto"], ["marginBottom", 10], ["marginLeft", "auto"], ["color", "#333333"], ["WebkitTransition", "font-size 0.25s linear, width 0.25s linear"], ["MozTransition", "font-size 0.25s linear, width 0.25s linear"], ["fontSize:hover", 100]])]])], ["svg-icon", utsMapOf([[".icon_lists ", utsMapOf([["verticalAlign", -0.15], ["fill", "currentColor"], ["overflow", "hidden"]])]])], ["markdown", padStyleMapOf(utsMapOf([["color", "#666666"], ["fontSize", 14], ["lineHeight", 1.8]]))], ["highlight", utsMapOf([["", utsMapOf([["lineHeight", 1.5]])], [".markdown>", utsMapOf([["width", "80%"]])]])], ["anchor", utsMapOf([[".markdown ", utsMapOf([["opacity", 0], ["transitionProperty", "opacity"], ["transitionDuration", "0.3s"], ["transitionTimingFunction", "ease"], ["marginLeft", 8]])]])], ["waiting", utsMapOf([[".markdown ", utsMapOf([["color", "#cccccc"]])]])], ["hljs", padStyleMapOf(utsMapOf([["backgroundColor", "#FFFFFF"], ["color", "#333333"], ["overflowX", "auto"]]))], ["hljs-comment", padStyleMapOf(utsMapOf([["color", "#969896"]]))], ["hljs-meta", padStyleMapOf(utsMapOf([["color", "#969896"]]))], ["hljs-string", padStyleMapOf(utsMapOf([["color", "#df5000"]]))], ["hljs-variable", padStyleMapOf(utsMapOf([["color", "#df5000"]]))], ["hljs-template-variable", padStyleMapOf(utsMapOf([["color", "#df5000"]]))], ["hljs-strong", padStyleMapOf(utsMapOf([["color", "#df5000"]]))], ["hljs-emphasis", padStyleMapOf(utsMapOf([["color", "#df5000"]]))], ["hljs-quote", padStyleMapOf(utsMapOf([["color", "#df5000"]]))], ["hljs-keyword", padStyleMapOf(utsMapOf([["color", "#a71d5d"]]))], ["hljs-selector-tag", padStyleMapOf(utsMapOf([["color", "#a71d5d"]]))], ["hljs-type", padStyleMapOf(utsMapOf([["color", "#a71d5d"]]))], ["hljs-literal", padStyleMapOf(utsMapOf([["color", "#0086b3"]]))], ["hljs-symbol", padStyleMapOf(utsMapOf([["color", "#0086b3"]]))], ["hljs-bullet", padStyleMapOf(utsMapOf([["color", "#0086b3"]]))], ["hljs-attribute", padStyleMapOf(utsMapOf([["color", "#0086b3"]]))], ["hljs-section", padStyleMapOf(utsMapOf([["color", "#63a35c"]]))], ["hljs-name", padStyleMapOf(utsMapOf([["color", "#63a35c"]]))], ["hljs-tag", padStyleMapOf(utsMapOf([["color", "#333333"]]))], ["hljs-title", padStyleMapOf(utsMapOf([["color", "#795da3"]]))], ["hljs-attr", padStyleMapOf(utsMapOf([["color", "#795da3"]]))], ["hljs-selector-id", padStyleMapOf(utsMapOf([["color", "#795da3"]]))], ["hljs-selector-class", padStyleMapOf(utsMapOf([["color", "#795da3"]]))], ["hljs-selector-attr", padStyleMapOf(utsMapOf([["color", "#795da3"]]))], ["hljs-selector-pseudo", padStyleMapOf(utsMapOf([["color", "#795da3"]]))], ["hljs-addition", padStyleMapOf(utsMapOf([["color", "#55a532"], ["backgroundColor", "#eaffea"]]))], ["hljs-deletion", padStyleMapOf(utsMapOf([["color", "#bd2c00"], ["backgroundColor", "#ffecec"]]))], ["hljs-link", padStyleMapOf(utsMapOf([["textDecoration", "underline"]]))], ["token", utsMapOf([[".comment", utsMapOf([["color", "#708090"]])], [".prolog", utsMapOf([["color", "#708090"]])], [".doctype", utsMapOf([["color", "#708090"]])], [".cdata", utsMapOf([["color", "#708090"]])], [".punctuation", utsMapOf([["color", "#999999"]])], [".property", utsMapOf([["color", "#990055"]])], [".tag", utsMapOf([["color", "#990055"]])], [".boolean", utsMapOf([["color", "#990055"]])], [".number", utsMapOf([["color", "#990055"]])], [".constant", utsMapOf([["color", "#990055"]])], [".symbol", utsMapOf([["color", "#990055"]])], [".deleted", utsMapOf([["color", "#990055"]])], [".selector", utsMapOf([["color", "#669900"]])], [".attr-name", utsMapOf([["color", "#669900"]])], [".string", utsMapOf([["color", "#669900"]])], [".char", utsMapOf([["color", "#669900"]])], [".builtin", utsMapOf([["color", "#669900"]])], [".inserted", utsMapOf([["color", "#669900"]])], [".operator", utsMapOf([["color", "#9a6e3a"]])], [".entity", utsMapOf([["color", "#9a6e3a"], ["cursor", "help"]])], [".url", utsMapOf([["color", "#9a6e3a"]])], [".language-css .string", utsMapOf([["color", "#9a6e3a"]])], [".style .string", utsMapOf([["color", "#9a6e3a"]])], [".atrule", utsMapOf([["color", "#0077aa"]])], [".attr-value", utsMapOf([["color", "#0077aa"]])], [".keyword", utsMapOf([["color", "#0077aa"]])], [".function", utsMapOf([["color", "#DD4A68"]])], [".class-name", utsMapOf([["color", "#DD4A68"]])], [".regex", utsMapOf([["color", "#ee9900"]])], [".important", utsMapOf([["color", "#ee9900"], ["fontWeight", "bold"]])], [".variable", utsMapOf([["color", "#ee9900"]])], [".bold", utsMapOf([["fontWeight", "bold"]])], [".italic", utsMapOf([["fontStyle", "italic"]])]])], ["namespace", padStyleMapOf(utsMapOf([["opacity", 0.7]]))], ["uni-row", padStyleMapOf(utsMapOf([["flexDirection", "row"]]))], ["uni-column", padStyleMapOf(utsMapOf([["flexDirection", "column"]]))], ["@FONT-FACE", utsMapOf([["0", utsMapOf([["fontFamily", "iconfont logo"], ["src", "url('https://at.alicdn.com/t/font_985780_km7mi63cihi.eot?t=1545807318834#iefix') format('embedded-opentype'),\n    url('https://at.alicdn.com/t/font_985780_km7mi63cihi.woff?t=1545807318834') format('woff'),\n    url('https://at.alicdn.com/t/font_985780_km7mi63cihi.ttf?t=1545807318834') format('truetype'),\n    url('https://at.alicdn.com/t/font_985780_km7mi63cihi.svg?t=1545807318834#iconfont') format('svg')"]])], ["1", utsMapOf([])]])], ["@TRANSITION", utsMapOf([["anchor", utsMapOf([["property", "opacity"], ["duration", "0.3s"], ["timingFunction", "ease"]])]])]])]

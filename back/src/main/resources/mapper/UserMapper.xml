@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.paradx.soul.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.paradx.soul.pojo.User">
+            <id property="userid" column="userid" jdbcType="BIGINT"/>
+            <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+            <result property="sex" column="sex" jdbcType="INTEGER"/>
+            <result property="password" column="password" jdbcType="VARCHAR"/>
+            <result property="phone" column="phone" jdbcType="BIGINT"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
+            <result property="role" column="role" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        userid,nickname,sex,
+        password,phone,email,
+        role,img
+    </sql>
+
+    <!--    注册用户-->
+    <insert id="insert">
+        insert into user (userid, nickname, password, phone, email, role, sex)
+        values (#{userid}, #{nickname}, #{password}, #{phone}, #{email}, #{role}, #{sex})
+     </insert>
+
+    <delete id="delUser">
+        delete  from user where userid=#{id}
+    </delete>
+
+    <!--    渲染用户信息-->
+    <select id="selectById" resultType="com.paradx.soul.pojo.User">
+        select * from user where userid=#{userId}
+    </select>
+
+
+    <!--    修改用户信息-->
+    <update id="changeUserInfo">
+        update user
+        <set>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="img != null">img = #{img},</if>
+            <if test="password != null">password = #{password}</if>
+        </set>
+        where userid = #{userid}
+    </update>
+
+    <update id="resetPwd">
+        update user set password =#{password}where userid=#{id}
+    </update>
+
+    <select id="getAllUser" resultType="com.paradx.soul.pojo.User">
+        select * from user
+        <if test="keywords!= null">
+            where userid = #{keywords}
+            or nickname = #{keywords}
+            or sex = #{keywords}
+            or phone = #{keywords}
+            or email = #{keywords}
+        </if>
+    </select>
+
+
+</mapper>

@@ -1,0 +1,86 @@
+
+const __sfc__ = defineComponent({
+  data() {
+    return {
+      feedbackContent: '', // 用户输入的反馈内容
+      feedbackLength: 200, // 初始剩余字数
+    };
+  },
+  watch: {
+    feedbackContent(newVal) {
+      this.feedbackLength = 200 - newVal.length;
+    }
+  },
+  methods: {
+    // 提交反馈
+    submitFeedback() {
+      if (this.feedbackContent.trim() === '') {
+        uni.showToast({
+          title: '请输入意见反馈内容',
+          icon: 'none'
+        });
+        return;
+      }else{
+		  uni.request({
+		    url: this.$u.baseURL+'/advice/putAdvice',
+		    method: 'POST',
+		    header:{
+		  	  token:this.token
+		    },
+		    data: this.feedbackContent,
+		    success: (res) => {
+				console.log(res);
+		      if (res.data.code == 200) {
+		  		uni.showToast({
+		  						  title:'提交成功，感谢您宝贵的意见！',
+		  						  icon:'none',
+		  						  duration: 500
+		  		}),
+		  		setTimeout(() => {
+		  		        uni.switchTab({
+		  		          url: '/pages/tabbar/Myself/Myself'
+		  		        });
+		  		      }, 500);
+		      } else {
+		        uni.showToast({
+		          title: '保存失败，请重试',
+		          icon: 'none'
+		        });
+		      }
+		    },
+		    fail: () => {
+		      uni.showToast({
+		        title: '网络请求失败',
+		        icon: 'none'
+		      });
+		    }
+		  });
+	  }
+      
+    }
+  }
+});
+
+export default __sfc__
+function GenPagesTabbarMyselfAdviceAdviceRender(this: InstanceType<typeof __sfc__>): any | null {
+const _ctx = this
+const _cache = this.$.renderCache
+  return createElementVNode("view", utsMapOf({ class: "feedback-container" }), [
+    createElementVNode("textarea", utsMapOf({
+      class: "feedback-input",
+      modelValue: _ctx.feedbackContent,
+      onInput: ($event: InputEvent) => {(_ctx.feedbackContent) = $event.detail.value},
+      placeholder: "请输入您的意见反馈...",
+      maxlength: "200"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createElementVNode("view", utsMapOf({ class: "word" }), [
+      createElementVNode("view", utsMapOf({ class: "word-count" }), toDisplayString(_ctx.feedbackLength) + "/200", 1 /* TEXT */)
+    ]),
+    createElementVNode("view", utsMapOf({ class: "advice-thanks" }), " 我们承诺,该意见反馈始终为匿名反馈，感谢您的宝贵意见 "),
+    createElementVNode("button", utsMapOf({
+      class: "submit-btn",
+      onClick: _ctx.submitFeedback
+    }), "提交反馈", 8 /* PROPS */, ["onClick"])
+  ])
+}
+const GenPagesTabbarMyselfAdviceAdviceStyles = [utsMapOf([["feedback-container", padStyleMapOf(utsMapOf([["alignItems", "center"], ["paddingTop", 20], ["paddingRight", 20], ["paddingBottom", 20], ["paddingLeft", 20], ["backgroundColor", "#f9f9f9"], ["borderRadius", 8], ["boxShadow", "0 2px 8px rgba(0, 0, 0, 0.1)"]]))], ["feedback-input", padStyleMapOf(utsMapOf([["width", "100%"], ["paddingTop", 12], ["paddingRight", 16], ["paddingBottom", 12], ["paddingLeft", 16], ["borderWidth", 1], ["borderStyle", "solid"], ["borderColor", "#cccccc"], ["borderRadius", 6], ["fontSize", 16], ["transitionDuration", "0.3s"], ["boxShadow", "inset 0 1px 3px rgba(0, 0, 0, 0.1)"], ["backgroundImage", "linear-gradient(to bottom, #ffffff, #f2f2f2)"]]))], ["word", padStyleMapOf(utsMapOf([["width", "100%"], ["marginTop", 10], ["display", "flex"], ["flexDirection", "row-reverse"]]))], ["word-count", padStyleMapOf(utsMapOf([["color", "#666666"], ["fontSize", 14]]))], ["advice-thanks", padStyleMapOf(utsMapOf([["backgroundColor", "#f5f5f5"], ["paddingTop", 20], ["paddingRight", 20], ["paddingBottom", 20], ["paddingLeft", 20], ["marginTop", 20], ["borderRadius", 5], ["color", "#666666"], ["fontSize", 14]]))], ["submit-btn", padStyleMapOf(utsMapOf([["width", "70%"], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["marginTop", 20], ["backgroundImage", "linear-gradient(135deg, #55aaff, #55ffff)"], ["color", "#FFFFFF"], ["borderWidth", "medium"], ["borderStyle", "none"], ["borderColor", "#000000"], ["borderRadius", 8], ["boxShadow", "0 4px 8px rgba(0, 0, 0, 0.2)"]]))], ["@TRANSITION", utsMapOf([["feedback-input", utsMapOf([["duration", "0.3s"]])]])]])]

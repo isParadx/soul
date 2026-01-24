@@ -1,0 +1,166 @@
+
+const __sfc__ = defineComponent({
+  data() {
+    return {
+      userid: '',
+      nickname: '',
+      password: '',
+      confirmPassword: '',
+      phone: '',
+      email: '',
+      roles: ['学生'],
+      genders: ['男', '女'], // 新增性别选项
+      roleIndex: 0,
+      genderIndex: 0, // 新增性别选择的索引
+    };
+  },
+  methods: {
+    onGenderChange(e) {
+      this.genderIndex = e.detail.value;
+    },
+    register() {
+      if (this.userid=='' || this.nickname || this.password || this.confirmPassword || this.phone) {
+        uni.showToast({
+          title: '账号、昵称、密码、重复密码和手机号不能为空',
+          icon: 'none'
+        });
+        return;
+      }
+      if (this.password !== this.confirmPassword) {
+        uni.showToast({
+          title: '两次输入的密码不一致',
+          icon: 'none'
+        });
+        return;
+      }
+      uni.request({
+        url: this.$u.baseURL + '/user/regist',
+        method: 'POST',
+        data: {
+          userid: this.userid,
+          password: this.password,
+          nickname: this.nickname,
+          role: this.roleIndex,
+          sex: this.genderIndex, 
+          phone: this.phone,
+          email: this.email || ''
+        },
+        success: (res) => {
+          if (res.data.code !== 200) {
+            uni.showToast({
+              title: '注册失败，请重试',
+              icon: 'none'
+            });
+          } else {
+			uni.showToast({
+			   title: '注册成功！跳转至登录界面',
+			   icon: 'success',
+				duration: 3000
+			});
+			// 登录成功后的其他操作，比如跳转到主页
+			setTimeout(() => {
+			        this.gotologin()
+			      },3000);
+          }
+        },
+        fail: (err) => {
+          uni.showToast({
+            title: '请求失败，请重试',
+            icon: 'none'
+          });
+        }
+      });
+    },
+    gotologin() {
+      uni.navigateTo({
+        url: '/pages/loAre/login/login'
+      });
+    }
+  }
+});
+
+export default __sfc__
+function GenPagesLoAreRegistRegistRender(this: InstanceType<typeof __sfc__>): any | null {
+const _ctx = this
+const _cache = this.$.renderCache
+const _component_picker = resolveComponent("picker")
+
+  return createElementVNode("view", utsMapOf({ class: "uni-padding-wrap" }), [
+    createElementVNode("view", utsMapOf({ class: "uni-title" }), "hi~,朋友,很高兴认识你！"),
+    createElementVNode("input", utsMapOf({
+      class: "uni-input",
+      type: "number",
+      modelValue: _ctx.userid,
+      onInput: ($event: InputEvent) => {(_ctx.userid) = $event.detail.value},
+      placeholder: "请输入账号"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createElementVNode("input", utsMapOf({
+      class: "uni-input",
+      type: "text",
+      modelValue: _ctx.nickname,
+      onInput: ($event: InputEvent) => {(_ctx.nickname) = $event.detail.value},
+      placeholder: "请输入昵称"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createElementVNode("input", utsMapOf({
+      class: "uni-input",
+      type: "password",
+      modelValue: _ctx.password,
+      onInput: ($event: InputEvent) => {(_ctx.password) = $event.detail.value},
+      placeholder: "请输入密码"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createElementVNode("input", utsMapOf({
+      class: "uni-input",
+      type: "password",
+      modelValue: _ctx.confirmPassword,
+      onInput: ($event: InputEvent) => {(_ctx.confirmPassword) = $event.detail.value},
+      placeholder: "请重复密码"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createVNode(_component_picker, utsMapOf({
+      mode: "selector",
+      range: _ctx.genders,
+      modelValue: _ctx.genderIndex,
+      "onUpdate:modelValue": $event => {(_ctx.genderIndex) = $event},
+      onChange: _ctx.onGenderChange
+    }), utsMapOf({
+      default: withSlotCtx((): any[] => [
+        createElementVNode("view", utsMapOf({ class: "uni-input" }), toDisplayString(_ctx.genders[_ctx.genderIndex]), 1 /* TEXT */)
+      ]),
+      _: 1 /* STABLE */
+    }), 8 /* PROPS */, ["range", "modelValue", "onUpdate:modelValue", "onChange"]),
+    createVNode(_component_picker, utsMapOf({
+      mode: "selector",
+      range: _ctx.roles,
+      modelValue: _ctx.roleIndex,
+      "onUpdate:modelValue": $event => {(_ctx.roleIndex) = $event},
+      onChange: _ctx.onGenderChange
+    }), utsMapOf({
+      default: withSlotCtx((): any[] => [
+        createElementVNode("view", utsMapOf({ class: "uni-input" }), toDisplayString(_ctx.roles[_ctx.roleIndex]), 1 /* TEXT */)
+      ]),
+      _: 1 /* STABLE */
+    }), 8 /* PROPS */, ["range", "modelValue", "onUpdate:modelValue", "onChange"]),
+    createElementVNode("input", utsMapOf({
+      class: "uni-input",
+      type: "number",
+      modelValue: _ctx.phone,
+      onInput: ($event: InputEvent) => {(_ctx.phone) = $event.detail.value},
+      placeholder: "请输入手机号"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createElementVNode("input", utsMapOf({
+      class: "uni-input",
+      type: "email",
+      modelValue: _ctx.email,
+      onInput: ($event: InputEvent) => {(_ctx.email) = $event.detail.value},
+      placeholder: "请输入邮箱(非必填)"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createElementVNode("view", utsMapOf({
+      style: normalizeStyle(utsMapOf({"color":"red"})),
+      onClick: _ctx.gotologin
+    }), "已有账号？去登录", 12 /* STYLE, PROPS */, ["onClick"]),
+    createElementVNode("button", utsMapOf({
+      class: "uni-button",
+      onClick: _ctx.register
+    }), "注册", 8 /* PROPS */, ["onClick"])
+  ])
+}
+const GenPagesLoAreRegistRegistStyles = [utsMapOf([["uni-padding-wrap", padStyleMapOf(utsMapOf([["paddingTop", 20], ["paddingRight", 20], ["paddingBottom", 20], ["paddingLeft", 20]]))], ["uni-title", padStyleMapOf(utsMapOf([["fontSize", 24], ["color", "#333333"], ["marginBottom", 20]]))], ["uni-input", padStyleMapOf(utsMapOf([["width", "100%"], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["marginBottom", 15], ["borderWidth", 1], ["borderStyle", "solid"], ["borderColor", "#dddddd"], ["borderRadius", 4]]))], ["uni-button", padStyleMapOf(utsMapOf([["marginTop", "3%"], ["width", "100%"], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["backgroundColor", "#007aff"], ["color", "#FFFFFF"], ["borderWidth", "medium"], ["borderStyle", "none"], ["borderColor", "#000000"], ["borderRadius", 4], ["cursor", "pointer"]]))]])]

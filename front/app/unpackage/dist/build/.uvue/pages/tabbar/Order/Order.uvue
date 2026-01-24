@@ -1,0 +1,171 @@
+
+const __sfc__ = defineComponent({
+  data() {
+    return {
+      token: '',
+      user: [],
+      currentStatus: 'all',
+      expandedOrder: null, // 用于跟踪当前展开的订单项
+      orderStatus: [
+        { name: '全部订单', value: 'all' },
+        { name: '未开始', value: '未开始' },
+        { name: '进行中', value: '进行中' },
+        { name: '已结束', value: '已结束' }
+      ],
+      orders: [],
+    };
+  },
+  onLoad(){
+    uni.getStorage({
+       key: 'token',
+       success: (res) => {
+         this.token = res.data;
+         this.getOrderInfo();
+       }
+     });
+  },
+  computed: {
+    filteredOrders() {
+      if (this.currentStatus === 'all') {
+        return this.orders;
+      } else {
+        return this.orders.filter(order => order.status === this.currentStatus);
+      }
+    }
+  },
+  methods: {
+    changeStatus(status) {
+      this.currentStatus = status;
+      this.expandedOrder = null;
+    },
+    toggleDetail(order) {
+      // 如果点击的是当前展开的订单项，则将其折叠
+      if (this.expandedOrder === order) {
+        this.expandedOrder = null;
+      } else {
+        // 否则展开点击的订单项，并折叠其他所有订单项
+        this.expandedOrder = order;
+      }
+    },
+    //获取订单列表
+    getOrderInfo(){
+      //先通过token获取用户信息，
+      uni.request({
+        url:this.$u.baseURL+'/user/getUserInfo',
+        method: 'GET',
+        header:{
+          "token":this.token,
+        },
+        success: (res) => {
+          this.user=res.data.data.loginUser;
+          //根据userid来查用户的订单
+          this.getAllOrder();
+        },
+        fail: () => {
+          uni.showToast({
+            title: '网络请求失败',
+            icon: 'none'
+          });
+        }
+      });
+    },
+    async getAllOrder() {
+      try {
+        const res = await uni.request({
+          url: this.$u.baseURL + '/consult/checkOrder',
+          method: 'GET',
+          data: {
+              keywords: this.user.userid
+            }
+        });
+        this.orders = res.data.data;
+        await this.updateOrderNames();
+      } catch (err) {
+        uni.showToast({
+          title: '请求失败，请重试',
+          icon: 'none'
+        });
+      }
+    },
+    async updateOrderNames() {
+      for (const order of this.orders) {
+        const docName = await this.getAllDoctor(order.docId);
+        order.name = docName;
+      }
+    },
+    async getAllDoctor(docid) {
+      try {
+        const res = await uni.request({
+          url: this.$u.baseURL + '/doctor/getAllDocter',
+          method: 'GET',
+          data: { keywords: docid },
+        });
+        return res.data.data[0].name;
+      } catch (err) {
+        uni.showToast({
+          title: '请求失败，请重试',
+          icon: 'none'
+        });
+        return ''; // 返回空字符串或一个默认值
+      }
+    },
+  },
+});
+
+export default __sfc__
+function GenPagesTabbarOrderOrderRender(this: InstanceType<typeof __sfc__>): any | null {
+const _ctx = this
+const _cache = this.$.renderCache
+  return createElementVNode("view", utsMapOf({ class: "order-container" }), [
+    createElementVNode("view", utsMapOf({ class: "order-tab" }), [
+      createElementVNode(Fragment, null, RenderHelpers.renderList(_ctx.orderStatus, (status, index, __index, _cached): any => {
+        return createElementVNode("view", utsMapOf({
+          key: index,
+          class: normalizeClass(utsMapOf({ 'active': _ctx.currentStatus === status.value })),
+          onClick: () => {_ctx.changeStatus(status.value)}
+        }), toDisplayString(status.name), 11 /* TEXT, CLASS, PROPS */, ["onClick"])
+      }), 128 /* KEYED_FRAGMENT */)
+    ]),
+    createElementVNode("view", utsMapOf({ class: "order-list" }), [
+      createElementVNode(Fragment, null, RenderHelpers.renderList(_ctx.filteredOrders, (order, __key, __index, _cached): any => {
+        return createElementVNode("view", utsMapOf({
+          key: order.id,
+          class: "order-item"
+        }), [
+          createElementVNode("view", utsMapOf({ class: "order-item-head" }), [
+            createElementVNode("view", utsMapOf({ class: "order-item-head-info" }), [
+              createElementVNode("text", null, "订单号：" + toDisplayString(order.id), 1 /* TEXT */),
+              createElementVNode("text", utsMapOf({ class: "status" }), toDisplayString(order.status), 1 /* TEXT */)
+            ]),
+            createElementVNode("text", utsMapOf({
+              onClick: () => {_ctx.toggleDetail(order)},
+              class: "clicktext"
+            }), "↓", 8 /* PROPS */, ["onClick"])
+          ]),
+          _ctx.expandedOrder === order
+            ? createElementVNode("view", utsMapOf({
+                key: 0,
+                class: "order-detail"
+              }), [
+                createElementVNode("view", null, [
+                  createElementVNode("text", null, "医师编号：" + toDisplayString(order.docId), 1 /* TEXT */),
+                  createElementVNode("text", null, "医师姓名：" + toDisplayString(order.name), 1 /* TEXT */),
+                  createElementVNode("text", null, "预约时间：" + toDisplayString(order.appointmentTime), 1 /* TEXT */)
+                ]),
+                order.status === '已结束'
+                  ? createElementVNode("view", utsMapOf({
+                      key: 0,
+                      class: "feedback-box"
+                    }), [
+                      createElementVNode("text", null, "反馈：" + toDisplayString(order.feedback), 1 /* TEXT */)
+                    ])
+                  : createCommentVNode("v-if", true)
+              ])
+            : createCommentVNode("v-if", true)
+        ])
+      }), 128 /* KEYED_FRAGMENT */)
+    ]),
+    createElementVNode("text", utsMapOf({ class: "text-loading" }), "~~加载完毕~~")
+  ])
+}
+const GenPagesTabbarOrderOrderStyles = [utsMapOf([["order-container", padStyleMapOf(utsMapOf([["height", "100%"], ["backgroundColor", "#e6e6fa"], ["paddingTop", 15], ["paddingRight", 15], ["paddingBottom", 15], ["paddingLeft", 15]]))], ["order-tab", padStyleMapOf(utsMapOf([["display", "flex"], ["flexDirection", "row"], ["justifyContent", "space-between"], ["borderBottomWidth", 1], ["borderBottomStyle", "solid"], ["borderBottomColor", "#cccccc"]]))], ["active", utsMapOf([[".order-tab ", utsMapOf([["borderBottomWidth", 2], ["borderBottomStyle", "solid"], ["borderBottomColor", "#0000FF"]])]])], ["order-list", padStyleMapOf(utsMapOf([["marginTop", 10]]))], ["order-item", padStyleMapOf(utsMapOf([["marginBottom", 20], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["borderWidth", 1], ["borderStyle", "solid"], ["borderColor", "#eeeeee"], ["borderRadius", 10], ["backgroundColor", "#ffffff"], ["boxShadow", "0 2px 5px rgba(0, 0, 0, 0.1)"], ["backgroundColor:hover", "#f9f9f9"]]))], ["order-item-head", padStyleMapOf(utsMapOf([["display", "flex"], ["flexDirection", "row"], ["justifyContent", "space-between"]]))], ["order-item-head-info", padStyleMapOf(utsMapOf([["width", "50%"], ["display", "flex"], ["flexDirection", "row"], ["justifyContent", "space-between"]]))], ["clicktext", padStyleMapOf(utsMapOf([["fontSize", 14], ["color", "#666666"]]))], ["order-detail", padStyleMapOf(utsMapOf([["width", "90%"], ["marginTop", 10], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["borderWidth", 1], ["borderStyle", "solid"], ["borderColor", "#cccccc"], ["borderRadius", 5], ["backgroundColor", "#fafafa"]]))], ["status", padStyleMapOf(utsMapOf([["color", "#FF0000"], ["fontWeight", "bold"]]))], ["feedback-box", padStyleMapOf(utsMapOf([["marginTop", 10], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["borderWidth", 1], ["borderStyle", "solid"], ["borderColor", "#cccccc"], ["borderRadius", 5], ["backgroundColor", "#f0f0f0"]]))], ["text-loading", padStyleMapOf(utsMapOf([["fontSize", 12], ["color", "#888888"], ["textAlign", "center"], ["marginTop", 10]]))]])]

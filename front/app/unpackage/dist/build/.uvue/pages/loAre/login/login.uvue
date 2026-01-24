@@ -1,0 +1,110 @@
+
+const __sfc__ = defineComponent({
+  data() {
+    return {
+      username: '',
+      password: '',
+	  trynum:0
+    };
+  },
+  methods: {
+	//点击登录至首页
+    login() {
+		if (this.password === "" || this.username === "") {
+		    uni.showToast({
+		        title: '账号密码不能为空',
+		        icon: 'none'
+		    });
+		} else {
+		    uni.request({
+		        url: this.$u.baseURL+'/user/login',
+		        method: 'POST',
+		        data: {
+		            "userid":this.username, 
+		            "password":this.password 
+		        },
+		        success: (res) => {
+					console.log(res)
+		            if (res.data.code !== 200) {
+		                uni.showToast({
+		                    title:'账号或密码不正确',
+		                    icon:'none'
+		                });
+		            } else {
+						if(res.data.data.role!=='学生'){
+							uni.showToast({
+							    title:'对不起,暂不支持您在手机端操作,请移步至电脑端', 
+							    icon:'none' 
+							});
+						}else{
+							uni.setStorage({
+								key: 'token',
+								data: res.data.data.token
+							});
+							uni.showToast({
+							    title:'登录成功！正在为您跳转', 
+							    icon:'success' ,
+								duration: 3000
+							});
+							// 登录成功后的其他操作，比如跳转到主页
+							setTimeout(() => {
+							        uni.switchTab({
+							          url: '/pages/tabbar/Home/Home'
+							        });
+							      }, 3500);
+						}
+		              
+		            }
+		        },
+		        fail: (err) => {
+		            uni.showToast({
+		                title: '请求失败，请重试', // 提示的内容
+		                icon: 'none' // 没有图标
+		            });
+					
+		        }
+		    });
+		}
+    },
+	//跳转至注册界面
+	gotoRegist(){
+		uni.navigateTo({
+			url:'/pages/loAre/regist/regist'
+		})
+	}
+	
+	
+  }
+});
+
+export default __sfc__
+function GenPagesLoAreLoginLoginRender(this: InstanceType<typeof __sfc__>): any | null {
+const _ctx = this
+const _cache = this.$.renderCache
+  return createElementVNode("view", utsMapOf({ class: "uni-padding-wrap" }), [
+    createElementVNode("view", utsMapOf({ class: "uni-title" }), "欢迎来到心灵之旅"),
+    createElementVNode("input", utsMapOf({
+      class: "uni-input",
+      type: "text",
+      modelValue: _ctx.username,
+      onInput: ($event: InputEvent) => {(_ctx.username) = $event.detail.value},
+      placeholder: "请输入用户名"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createElementVNode("input", utsMapOf({
+      class: "uni-input",
+      type: "password",
+      modelValue: _ctx.password,
+      onInput: ($event: InputEvent) => {(_ctx.password) = $event.detail.value},
+      placeholder: "请输入密码"
+    }), null, 40 /* PROPS, NEED_HYDRATION */, ["modelValue", "onInput"]),
+    createElementVNode("text", utsMapOf({
+      style: normalizeStyle(utsMapOf({"color":"green"})),
+      onClick: _ctx.gotoRegist
+    }), "没有账户？去注册", 12 /* STYLE, PROPS */, ["onClick"]),
+    createElementVNode("button", utsMapOf({
+      class: "uni-button",
+      onClick: _ctx.login
+    }), "登录", 8 /* PROPS */, ["onClick"])
+  ])
+}
+const GenPagesLoAreLoginLoginStyles = [utsMapOf([["uni-padding-wrap", padStyleMapOf(utsMapOf([["paddingTop", 20], ["paddingRight", 20], ["paddingBottom", 20], ["paddingLeft", 20]]))], ["uni-title", padStyleMapOf(utsMapOf([["fontSize", 24], ["color", "#333333"], ["marginBottom", 20]]))], ["uni-input", padStyleMapOf(utsMapOf([["width", "100%"], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["marginBottom", 15], ["borderWidth", 1], ["borderStyle", "solid"], ["borderColor", "#dddddd"], ["borderRadius", 4]]))], ["uni-button", padStyleMapOf(utsMapOf([["marginTop", "3%"], ["width", "100%"], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["backgroundColor", "#007aff"], ["color", "#FFFFFF"], ["borderWidth", "medium"], ["borderStyle", "none"], ["borderColor", "#000000"], ["borderRadius", 4], ["cursor", "pointer"]]))]])]

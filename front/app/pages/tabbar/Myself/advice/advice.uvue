@@ -1,0 +1,137 @@
+<template>
+  <view class="feedback-container">
+    <!-- 意见反馈输入框 -->
+      <textarea 
+        class="feedback-input" 
+        v-model="feedbackContent" 
+        placeholder="请输入您的意见反馈..."
+        maxlength="200"
+      />
+    <!-- 显示剩余字数 -->
+    <view class="word">
+		<view class="word-count">{{ feedbackLength }}/200</view>
+	</view>
+	<view class="advice-thanks">
+	   我们承诺,该意见反馈始终为匿名反馈，感谢您的宝贵意见
+	</view>
+    <!-- 提交意见反馈按钮 -->
+    <button class="submit-btn" @click="submitFeedback">提交反馈</button>
+	
+  </view>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      feedbackContent: '', // 用户输入的反馈内容
+      feedbackLength: 200, // 初始剩余字数
+    };
+  },
+  watch: {
+    feedbackContent(newVal) {
+      this.feedbackLength = 200 - newVal.length;
+    }
+  },
+  methods: {
+    // 提交反馈
+    submitFeedback() {
+      if (this.feedbackContent.trim() === '') {
+        uni.showToast({
+          title: '请输入意见反馈内容',
+          icon: 'none'
+        });
+        return;
+      }else{
+		  uni.request({
+		    url: this.$u.baseURL+'/advice/putAdvice',
+		    method: 'POST',
+		    header:{
+		  	  token:this.token
+		    },
+		    data: this.feedbackContent,
+		    success: (res) => {
+				console.log(res);
+		      if (res.data.code == 200) {
+		  		uni.showToast({
+		  						  title:'提交成功，感谢您宝贵的意见！',
+		  						  icon:'none',
+		  						  duration: 500
+		  		}),
+		  		setTimeout(() => {
+		  		        uni.switchTab({
+		  		          url: '/pages/tabbar/Myself/Myself'
+		  		        });
+		  		      }, 500);
+		      } else {
+		        uni.showToast({
+		          title: '保存失败，请重试',
+		          icon: 'none'
+		        });
+		      }
+		    },
+		    fail: () => {
+		      uni.showToast({
+		        title: '网络请求失败',
+		        icon: 'none'
+		      });
+		    }
+		  });
+	  }
+      
+    }
+  }
+};
+</script>
+
+<style>
+.feedback-container {
+  align-items: center;
+  padding: 20px;
+  background-color: #f9f9f9; /* 轻微的背景色 */
+  border-radius: 8px; /* 圆角边框 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 轻微的阴影效果 */
+}
+
+.feedback-input {
+ width: 100%;
+ padding: 12px 16px;
+ border: 1px solid #ccc;
+ border-radius: 6px;
+ font-size: 16px;
+ transition: all 0.3s;
+ box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+ background-image: linear-gradient(to bottom, #ffffff, #f2f2f2);
+}
+
+.word {
+  width: 100%;
+  margin-top: 10px; /* 与输入框保持一定距离 */
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.word-count {
+  color: #666;
+  font-size: 14px; /* 字体大小 */
+}
+.advice-thanks{
+	background-color: #f5f5f5;
+	padding: 20px;
+	margin-top: 20px;
+	border-radius: 5px;
+	color: #666;
+	font-size: 14px;
+}
+
+.submit-btn {
+ width: 70%;
+ padding: 10px;
+ margin-top: 20px;
+ background: linear-gradient(135deg, #55aaff, #55ffff);
+ color: white;
+ border: none;
+ border-radius: 8px;
+ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+</style>

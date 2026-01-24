@@ -1,0 +1,122 @@
+<template>
+  <view class="uni-padding-wrap">
+    <view class="uni-title">欢迎来到心灵之旅</view>
+    <input class="uni-input" type="text" v-model="username" placeholder="请输入用户名" />
+    <input class="uni-input" type="password" v-model="password" placeholder="请输入密码" />
+	<text style="color: green" @click="gotoRegist">没有账户？去注册</text>
+	<button class="uni-button" @click="login">登录</button>
+  </view>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      username: '',
+      password: '',
+	  trynum:0
+    };
+  },
+  methods: {
+	//点击登录至首页
+    login() {
+		if (this.password === "" || this.username === "") {
+		    uni.showToast({
+		        title: '账号密码不能为空',
+		        icon: 'none'
+		    });
+		} else {
+		    uni.request({
+		        url: this.$u.baseURL+'/user/login',
+		        method: 'POST',
+		        data: {
+		            "userid":this.username, 
+		            "password":this.password 
+		        },
+		        success: (res) => {
+					console.log(res)
+		            if (res.data.code !== 200) {
+		                uni.showToast({
+		                    title:'账号或密码不正确',
+		                    icon:'none'
+		                });
+		            } else {
+						if(res.data.data.role!=='学生'){
+							uni.showToast({
+							    title:'对不起,暂不支持您在手机端操作,请移步至电脑端', 
+							    icon:'none' 
+							});
+						}else{
+							uni.setStorage({
+								key: 'token',
+								data: res.data.data.token
+							});
+							uni.showToast({
+							    title:'登录成功！正在为您跳转', 
+							    icon:'success' ,
+								duration: 3000
+							});
+							// 登录成功后的其他操作，比如跳转到主页
+							setTimeout(() => {
+							        uni.switchTab({
+							          url: '/pages/tabbar/Home/Home'
+							        });
+							      }, 3500);
+						}
+		              
+		            }
+		        },
+		        fail: (err) => {
+		            uni.showToast({
+		                title: '请求失败，请重试', // 提示的内容
+		                icon: 'none' // 没有图标
+		            });
+					
+		        }
+		    });
+		}
+    },
+	//跳转至注册界面
+	gotoRegist(){
+		uni.navigateTo({
+			url:'/pages/loAre/regist/regist'
+		})
+	}
+	
+	
+  }
+};
+</script>
+
+<style>
+.uni-padding-wrap {
+  padding: 20px;
+}
+
+.uni-title {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.uni-input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.uni-button {
+  margin-top: 3%;
+  width: 100%;
+  padding: 10px;
+  background-color: #007aff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+</style>
+

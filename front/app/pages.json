@@ -1,0 +1,109 @@
+{
+	"tabBar": {
+	    "color": "#7A7E83",
+	    "selectedColor": "#3cc51f",
+	    "backgroundColor": "#ffffff",
+	    "borderStyle": "black",
+	    "position": "bottom",
+	    "list": [
+	      // 首页Tab
+	      {
+	        "pagePath": "pages/tabbar/Home/Home", 
+	        "text": "首页",
+	        "iconPath": "static/tabbar/home1.png", 
+	        "selectedIconPath": "static/tabbar/home2.png" 
+	      }, {
+	        "pagePath": "pages/tabbar/Order/Order", 
+	        "text": "咨询预约",
+	        "iconPath": "static/tabbar/order1.png", 
+	        "selectedIconPath": "static/tabbar/order2.png" 
+	      },
+		  {
+		    "pagePath": "pages/tabbar/Myself/Myself", 
+		    "text": "个人中心",
+		    "iconPath": "static/tabbar/myself1.png", 
+		    "selectedIconPath": "static/tabbar/myself2.png" 
+		  }
+	      // ... 其他Tab配置
+	    ]
+	  },
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path" : "pages/loAre/login/login",
+			"style" : 
+			{
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/loAre/regist/regist",
+			"style" : 
+			{
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/tabbar/Home/Home",
+			"style" : 
+			{
+				"navigationBarTitleText" : "首页"
+			}
+		},
+		{
+			"path" : "pages/tabbar/Home/detil/detil",
+			"style" : 
+			{
+				"navigationBarTitleText" : "医师详情"
+			}
+		},
+		{
+			"path" : "pages/tabbar/Myself/Myself",
+			"style" : 
+			{
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/tabbar/Myself/profile/profile",
+			"style" : 
+			{
+				"navigationBarTitleText" : "个人信息"
+			}
+		},
+		{
+			"path" : "pages/tabbar/Myself/password/password",
+			"style" : 
+			{
+				"navigationBarTitleText" : "密码修改"
+			}
+		},
+		{
+			"path" : "pages/tabbar/Myself/advice/advice",
+			"style" : 
+			{
+				"navigationBarTitleText" : "意见反馈"
+			}
+		},
+		{
+			"path" : "pages/tabbar/Order/Order",
+			"style" : 
+			{
+				"navigationBarTitleText" : "咨询预约"
+			}
+		},
+		{
+			"path" : "pages/CozeChat/CozeChat",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app x",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {}
+}

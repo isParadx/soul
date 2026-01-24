@@ -1,0 +1,86 @@
+
+const __sfc__ = defineComponent({
+  data() {
+    return {
+      nickname: 'hi!欢迎使用',
+      menuItems: [
+        { icon: 'icon-info', text: '个人信息', url: '/pages/tabbar/Myself/profile/profile' },
+        { icon: 'icon-lock', text: '密码修改', url: '/pages/tabbar/Myself/password/password' },
+        { icon: 'icon-advice;', text: '意见反馈', url: '/pages/tabbar/Myself/advice/advice' }
+      ]
+    };
+  },
+  onLoad() {
+  	uni.getStorage({
+  			  key:'token',
+  			  success:(res)=>{
+  				 this.token=res.data;
+  			}
+  	}) 
+  },
+  methods: { 
+    navigateTo(url) {
+		uni.navigateTo({
+			url: url
+		});
+    },
+    logout() {
+      uni.removeStorage({
+		  key:'token',
+		  success:function(){
+			  uni.clearStorage()
+			  uni.showToast({
+				  title:'退出成功，请重新登录',
+				  icon:'none',
+				  duration: 1000
+			  }),
+			  setTimeout(() => {
+			          uni.navigateTo({
+			            url: '/pages/loAre/login/login'
+			          });
+			        }, 1000);
+			  
+		  }
+	  })
+    }
+  }
+});
+
+export default __sfc__
+function GenPagesTabbarMyselfMyselfRender(this: InstanceType<typeof __sfc__>): any | null {
+const _ctx = this
+const _cache = this.$.renderCache
+  return createElementVNode("view", utsMapOf({ class: "container" }), [
+    createElementVNode("view", utsMapOf({ class: "profile" }), [
+      createElementVNode("view", utsMapOf({ class: "avatar" }), [
+        createElementVNode("image", utsMapOf({
+          class: "avatar-img",
+          src: "/static/user.png"
+        }))
+      ]),
+      createElementVNode("text", utsMapOf({ class: "avatar-nickname" }), toDisplayString(_ctx.nickname), 1 /* TEXT */)
+    ]),
+    createElementVNode("view", utsMapOf({ class: "menu" }), [
+      createElementVNode(Fragment, null, RenderHelpers.renderList(_ctx.menuItems, (item, index, __index, _cached): any => {
+        return createElementVNode("view", utsMapOf({
+          key: index,
+          class: "menu-item",
+          onClick: () => {_ctx.navigateTo(item.url)}
+        }), [
+          createElementVNode("view", utsMapOf({ class: "menu-item-left" }), [
+            createElementVNode("view", utsMapOf({
+              class: normalizeClass(item.icon)
+            }), null, 2 /* CLASS */),
+            createElementVNode("text", utsMapOf({ class: "menu-text" }), toDisplayString(item.text), 1 /* TEXT */)
+          ]),
+          createElementVNode("text", utsMapOf({ class: "arrow" }), ">")
+        ], 8 /* PROPS */, ["onClick"])
+      }), 128 /* KEYED_FRAGMENT */)
+    ]),
+    createElementVNode("button", utsMapOf({
+      class: "logout-button",
+      onClick: _ctx.logout
+    }), "退出", 8 /* PROPS */, ["onClick"])
+  ])
+}
+const GenPagesTabbarMyselfMyselfStyles = [utsMapOf([["container", padStyleMapOf(utsMapOf([["height", "100%"], ["display", "flex"], ["flexDirection", "column"], ["alignItems", "center"], ["backgroundColor", "#e6e6fa"], ["paddingTop", 20], ["paddingRight", 20], ["paddingBottom", 20], ["paddingLeft", 20]]))], ["profile", padStyleMapOf(utsMapOf([["display", "flex"], ["alignItems", "center"], ["marginBottom", 20]]))], ["avatar", padStyleMapOf(utsMapOf([["width", 80], ["height", 80], ["backgroundColor", "#ffffff"], ["marginRight", 20], ["boxShadow", "0 0 10px rgba(0, 0, 0, 0.1)"]]))], ["avatar-img", padStyleMapOf(utsMapOf([["width", 80], ["height", 80]]))], ["avatar-nickname", padStyleMapOf(utsMapOf([["fontSize", 20], ["color", "#333333"]]))], ["menu", padStyleMapOf(utsMapOf([["width", "100%"]]))], ["menu-item", padStyleMapOf(utsMapOf([["display", "flex"], ["flexDirection", "row"], ["justifyContent", "space-between"], ["alignItems", "center"], ["paddingTop", 15], ["paddingRight", 15], ["paddingBottom", 15], ["paddingLeft", 15], ["marginBottom", 10], ["backgroundColor", "#ffffff"], ["borderRadius", 8], ["boxShadow", "0 4px 8px rgba(0, 0, 0, 0.1)"]]))], ["menu-item-left", padStyleMapOf(utsMapOf([["display", "flex"], ["flexDirection", "row"]]))], ["menu-text", padStyleMapOf(utsMapOf([["marginLeft", 15], ["fontSize", 18], ["color", "#007aff"]]))], ["arrow", padStyleMapOf(utsMapOf([["fontSize", 18], ["color", "#666666"]]))], ["logout-button", padStyleMapOf(utsMapOf([["width", 200], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["marginTop", 20], ["backgroundImage", "linear-gradient(135deg, #3f51b5, #5c6bc0)"], ["color", "#FFFFFF"], ["borderWidth", "medium"], ["borderStyle", "none"], ["borderColor", "#000000"], ["borderRadius", 8], ["boxShadow", "0 4px 8px rgba(0, 0, 0, 0.2)"], ["fontSize", 18]]))]])]

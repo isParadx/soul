@@ -1,0 +1,14 @@
+import App from './App.uvue'
+
+import { createSSRApp } from 'vue'
+
+
+export function createApp() {
+	const app = createSSRApp(App)
+	  app.config.globalProperties.$u = {
+	    baseURL: 'http://localhost:8080'
+	  };
+	return {
+		app
+	}
+}

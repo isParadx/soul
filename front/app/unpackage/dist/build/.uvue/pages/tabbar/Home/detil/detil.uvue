@@ -1,0 +1,335 @@
+
+const __sfc__ = defineComponent({
+data() {
+  return {
+    id: 0,
+    doctor: {},
+	token:'',
+	user:{},
+    currentTab: 0,
+    isShowModal: false, // 控制弹窗显示
+    selectedDate: '', // 选择的日期
+    selectedTime: '', // 选择的时间段
+    availableTimes: [ // 可用时间段
+      { time: '9:00-10:00', selected: false, available: true },
+      { time: '10:30-11:30', selected: false, available: true },
+      { time: '13:00-14:00', selected: false, available: true },
+      { time: '14:30-15:30', selected: false, available: true },
+      { time: '16:00-17:00', selected: false, available: true },
+      { time: '19:00-20:00', selected: false, available: true },
+    ],
+    dates: this.getAvailableDates() // 可用日期
+  };
+},
+  onLoad(opt) {
+	this.id=opt.docId;
+	this.getDoctor(this.id);
+	uni.getStorage({
+			  key:'token',
+			  success:(res)=>{
+				 this.token=res.data;
+				 this.getuserInfo()
+			  }
+	}) 
+  },
+  methods: {
+	getDoctor(keywords) {
+	  uni.request({
+	    url: this.$u.baseURL + '/doctor/getAllDocter',
+	    method: 'GET',
+	    data: {
+	      "keywords": this.id
+	    },
+	    success: (res) => {
+	      if (res.data.code == 200) {
+	        const r= res.data.data;
+			r[0].type = r[0].type.split(',').map(tag => tag.trim()); // 分割字符串并去除空格
+			this.doctor=r[0];
+	      }
+	    },
+	    fail: (err) => {
+	      uni.showToast({
+	        title: '请求失败，请重试', // 提示的内容
+	        icon: 'none' // 没有图标
+	      });
+	    }
+	  });
+	},
+	
+	//获取用户信息请求
+	getuserInfo(){
+		uni.request({
+		  url:this.$u.baseURL+'/user/getUserInfo',
+		  method: 'GET',
+		  header:{
+			  "token":this.token,
+		  },
+		  success: (res) => {
+		   this.user=res.data.data.loginUser;
+		  },
+		  fail: () => {
+		    uni.showToast({
+		      title: '网络请求失败',
+		      icon: 'none'
+		    });
+		  }
+		});
+	},
+	
+	
+	
+    switchTab(index) {
+      this.currentTab = index;
+    },
+     consultNow() {
+        this.isShowModal = true;
+        this.selectedDate = this.dates[0]; // 默认选择第一个日期
+        this.updateAvailableTimes(); // 更新可用时间段
+		console.log(this.selectedDate)
+      },
+    
+     getAvailableDates() {
+       const dates = [];
+       const baseDate = new Date(); // 保存原始日期
+       for (let i = 0; i < 3; i++) {
+        const date = new Date(baseDate); // 每次循环都从原始日期开始
+			date.setDate(date.getDate() + i);
+			const year = date.getFullYear();
+			const month = (date.getMonth() + 1).toString().padStart(2, '0');
+			const day = date.getDate().toString().padStart(2, '0');
+			dates.push(`${year}-${month}.${day}`);
+       }
+       return dates;
+     },
+	 passTimeNotChoose(){ 
+		 if(this.selectedDate==this.dates[0]){
+			 //过期时间不可选
+			  this.availableTimes.forEach((item) => {
+			 		item.selected=false;
+			  })
+			 //先根据当前时间判断，将过期时间段不可选
+			 const date = new Date();
+			 //获取当前的时间时,分
+			 const hour = parseInt(date.getHours().toString().padStart(2, '0'));
+			 const min =parseInt(date.getMinutes().toString().padStart(2, '0'));
+			 //过期时间不可选
+			  this.availableTimes.forEach((timeSlot) => {
+			 			 timeSlot.available=true
+			 	 const res=timeSlot.time.split('-')[0].split(':')
+			 	 const reshour = parseInt(res[0], 10);
+			 	 const resmin = parseInt(res[1], 10);
+			 			if (hour > reshour || (hour === reshour && min > resmin)) {
+			 			        timeSlot.available = false;
+			 			    }
+			  })
+		 }else{
+			 if(this.selectedDate!=this.dates[0]){
+			 	this.availableTimes.forEach((item)=>{
+						item.selected=false;
+			 			item.available=true;
+			 	})
+			 }
+		}
+	 },
+    
+      updateAvailableTimes() {
+		this.passTimeNotChoose();
+		//数据库出现的时间不可选
+		uni.request({
+			url: this.$u.baseURL+'/consult/checkOrder',
+			method: 'GET',
+			data:{
+				"keyid":this.id
+			},
+			success: (res) => {
+				const resTimes=res.data.data;
+				resTimes.forEach((item)=>{
+					const parts=item.appointmentTime.split('/')
+					const resDate= parts[0];//获取该项预约的日期
+					const restime= parts[1];//获取该项预约的时间
+					
+					console.log(item.docId)
+					console.log(this.id)
+					
+					if(item.docId==this.id){
+						if(this.selectedDate==resDate){
+							this.availableTimes.forEach((tim)=>{
+								if(restime==tim.time){
+									tim.available=false
+								}
+							})
+						}
+					}
+					
+			 	})
+			},
+			fail: (err) => {
+				uni.showToast({
+					title: '请求失败，请重试',
+					icon: 'none'
+				});
+			}
+		});	
+      },
+    
+      selectDate(date) {
+		  console.log(date)
+        this.selectedDate = date;
+        this.updateAvailableTimes(); // 更新可用时间段
+      },
+    
+      selectTime(time) {
+        this.availableTimes.forEach((item) => {
+          item.selected = item.time === time;
+        });
+        this.selectedTime = time;
+      },
+    
+      confirmBooking() {
+        // 这里添加预约逻辑
+		if(this.selectedTime==''){
+			uni.showToast({
+				title: '请选择预约时间',
+				icon: 'none'
+			});
+		}else{
+			uni.request({
+				url: this.$u.baseURL+'/consult/setOrder',
+				method: 'POST',
+				data:{
+					"docId":this.id,
+					"stuId":this.user.userid,
+					"appointmentTime":this.selectedDate+'/'+this.selectedTime
+				},
+				success: (res) => {
+					uni.showToast({
+					  title: '预约成功',
+					  icon: 'success'
+					});
+					this.isShowModal = false;
+				},
+				fail: (err) => {
+					uni.showToast({
+						title: '请求失败，请重试',
+						icon: 'none'
+					});
+				}
+			});	
+			
+		}
+      },
+  }
+});
+
+export default __sfc__
+function GenPagesTabbarHomeDetilDetilRender(this: InstanceType<typeof __sfc__>): any | null {
+const _ctx = this
+const _cache = this.$.renderCache
+const _component_br = resolveComponent("br")
+
+  return createElementVNode(Fragment, null, [
+    createElementVNode("view", utsMapOf({ class: "doctor-detail-container" }), [
+      createElementVNode("view", utsMapOf({ class: "doctor-avatar" }), [
+        createElementVNode("image", utsMapOf({
+          class: "doctor-avatar-image",
+          src: "/static/user.png"
+        }))
+      ]),
+      createElementVNode("view", utsMapOf({ class: "doctor-name" }), toDisplayString(_ctx.doctor.name), 1 /* TEXT */),
+      createElementVNode("view", utsMapOf({ class: "tabs" }), [
+        createElementVNode("view", utsMapOf({
+          class: normalizeClass(["tab-item", utsMapOf({ active: _ctx.currentTab === 0 })]),
+          onClick: () => {_ctx.switchTab(0)}
+        }), "个人简介", 10 /* CLASS, PROPS */, ["onClick"]),
+        createElementVNode("view", utsMapOf({
+          class: normalizeClass(["tab-item", utsMapOf({ active: _ctx.currentTab === 1 })]),
+          onClick: () => {_ctx.switchTab(1)}
+        }), "擅长领域", 10 /* CLASS, PROPS */, ["onClick"]),
+        createElementVNode("view", utsMapOf({
+          class: normalizeClass(["tab-item", utsMapOf({ active: _ctx.currentTab === 2 })]),
+          onClick: () => {_ctx.switchTab(2)}
+        }), "医师寄语", 10 /* CLASS, PROPS */, ["onClick"])
+      ]),
+      createElementVNode("view", utsMapOf({ class: "doctor-info" }), [
+        withDirectives(createElementVNode("view", utsMapOf({ class: "description-content" }), toDisplayString(_ctx.doctor.intruduce), 513 /* TEXT, NEED_PATCH */), [
+          [vShow, _ctx.currentTab === 0]
+        ]),
+        withDirectives(createElementVNode("view", utsMapOf({ class: "specialty-tags" }), [
+          createElementVNode(Fragment, null, RenderHelpers.renderList(_ctx.doctor.type, (item, index, __index, _cached): any => {
+            return createElementVNode("view", utsMapOf({
+              class: "tag",
+              key: index
+            }), toDisplayString(item), 1 /* TEXT */)
+          }), 128 /* KEYED_FRAGMENT */)
+        ], 512 /* NEED_PATCH */), [
+          [vShow, _ctx.currentTab === 1]
+        ]),
+        withDirectives(createElementVNode("view", utsMapOf({ class: "description-content" }), toDisplayString(_ctx.doctor.say), 513 /* TEXT, NEED_PATCH */), [
+          [vShow, _ctx.currentTab === 2]
+        ])
+      ]),
+      createElementVNode("view", utsMapOf({ class: "consultation-notice-container" }), [
+        createElementVNode("view", utsMapOf({ class: "consultation-notice-title" }), "咨询须知"),
+        createElementVNode("view", utsMapOf({ class: "consultation-notice-content" }), [
+          " 1、咨询为预约服务，您可选择老师进行预约，每次咨询50分钟或60分钟。 ",
+          createVNode(_component_br, null, utsMapOf({
+            default: withSlotCtx((): any[] => [
+              " 2、预约成功后，您的预约需咨询师确认并安排咨询时间，请留意您的订单状态。 ",
+              createVNode(_component_br, null, utsMapOf({
+                default: withSlotCtx((): any[] => [
+                  " 3、当订单状态为\"准备进行\"时，意味着您在24小时之后-48小时之前可随时拜访心理咨询室 ",
+                  createVNode(_component_br, null, utsMapOf({
+                    default: withSlotCtx((): any[] => [" 4、因不可抗力因素变更时间或取消咨询预约，请提前12小时告知咨询师。 "]),
+                    _: 1 /* STABLE */
+                  }))
+                ]),
+                _: 1 /* STABLE */
+              }))
+            ]),
+            _: 1 /* STABLE */
+          }))
+        ])
+      ]),
+      createElementVNode("button", utsMapOf({
+        class: "consult-now",
+        onClick: _ctx.consultNow
+      }), "立即咨询", 8 /* PROPS */, ["onClick"])
+    ]),
+    isTrue(_ctx.isShowModal)
+      ? createElementVNode("view", utsMapOf({
+          key: 0,
+          class: "modal"
+        }), [
+          createElementVNode("view", utsMapOf({ class: "modal-content" }), [
+            createElementVNode("view", utsMapOf({ class: "modal-header" }), [
+              " 选择预约日期 ",
+              createElementVNode("view", utsMapOf({ class: "smailtabs" }), [
+                createElementVNode(Fragment, null, RenderHelpers.renderList(_ctx.dates, (date, index, __index, _cached): any => {
+                  return createElementVNode("view", utsMapOf({
+                    class: normalizeClass(["tab-item", utsMapOf({ active: _ctx.selectedDate === date })]),
+                    onClick: () => {_ctx.selectDate(date)},
+                    key: index
+                  }), toDisplayString(date), 11 /* TEXT, CLASS, PROPS */, ["onClick"])
+                }), 128 /* KEYED_FRAGMENT */)
+              ])
+            ]),
+            createElementVNode("view", utsMapOf({ class: "modal-body" }), [
+              createElementVNode("view", utsMapOf({ class: "time-picker" }), [
+                createElementVNode(Fragment, null, RenderHelpers.renderList(_ctx.availableTimes, (time, __key, __index, _cached): any => {
+                  return createElementVNode("view", utsMapOf({
+                    class: normalizeClass(utsMapOf({'selected': time.selected, 'unavailable': !time.available})),
+                    key: time.time,
+                    onClick: () => {_ctx.selectTime(time.time)}
+                  }), toDisplayString(time.time), 11 /* TEXT, CLASS, PROPS */, ["onClick"])
+                }), 128 /* KEYED_FRAGMENT */)
+              ])
+            ]),
+            createElementVNode("view", utsMapOf({ class: "modal-footer" }), [
+              createElementVNode("button", utsMapOf({ onClick: _ctx.confirmBooking }), "确认预约", 8 /* PROPS */, ["onClick"])
+            ])
+          ])
+        ])
+      : createCommentVNode("v-if", true)
+  ], 64 /* STABLE_FRAGMENT */)
+}
+const GenPagesTabbarHomeDetilDetilStyles = [utsMapOf([["doctor-detail-container", padStyleMapOf(utsMapOf([["height", "100%"], ["backgroundColor", "#e6e6fa"], ["paddingTop", 15], ["paddingRight", 15], ["paddingBottom", 15], ["paddingLeft", 15]]))], ["doctor-avatar", padStyleMapOf(utsMapOf([["display", "flex"], ["justifyContent", "center"], ["alignItems", "center"]]))], ["doctor-avatar-image", padStyleMapOf(utsMapOf([["width", 100], ["height", 100]]))], ["doctor-name", padStyleMapOf(utsMapOf([["marginTop", 20], ["textAlign", "center"]]))], ["tabs", padStyleMapOf(utsMapOf([["display", "flex"], ["flexDirection", "row"], ["marginTop", 20], ["borderBottomWidth", 1], ["borderBottomStyle", "solid"], ["borderBottomColor", "#cccccc"]]))], ["tab-item", utsMapOf([["", utsMapOf([["flex", 1], ["textAlign", "center"], ["paddingTop", 10], ["paddingRight", 10], ["paddingBottom", 10], ["paddingLeft", 10], ["cursor", "pointer"], ["borderBottomWidth", 2], ["borderBottomStyle", "solid"], ["borderBottomColor", "rgba(0,0,0,0)"]])], [".active", utsMapOf([["borderBottomColor", "#007aff"]])]])], ["doctor-info", padStyleMapOf(utsMapOf([["marginTop", 20]]))], ["description-content", padStyleMapOf(utsMapOf([["fontSize", 14], ["color", "#666666"], ["textIndent", 2]]))], ["specialty-tags", padStyleMapOf(utsMapOf([["display", "flex"], ["flexDirection", "row"], ["flexWrap", "wrap"], ["gap", "10px"]]))], ["tag", padStyleMapOf(utsMapOf([["paddingTop", 5], ["paddingRight", 10], ["paddingBottom", 5], ["paddingLeft", 10], ["backgroundColor", "#f0f0f0"], ["borderRadius", 15], ["color", "#333333"], ["fontSize", 12]]))], ["consultation-notice-container", padStyleMapOf(utsMapOf([["backgroundColor", "#f5f5f5"], ["paddingTop", 20], ["paddingRight", 20], ["paddingBottom", 20], ["paddingLeft", 20], ["marginTop", 20], ["borderRadius", 5]]))], ["consultation-notice-title", padStyleMapOf(utsMapOf([["fontWeight", "bold"], ["marginBottom", 10]]))], ["consultation-notice-content", padStyleMapOf(utsMapOf([["fontSize", 14], ["color", "#666666"]]))], ["doctor-message-container", padStyleMapOf(utsMapOf([["marginTop", 20], ["paddingTop", 15], ["paddingRight", 15], ["paddingBottom", 15], ["paddingLeft", 15], ["backgroundColor", "#e8f0fe"], ["borderRadius", 5]]))], ["doctor-message-title", padStyleMapOf(utsMapOf([["fontWeight", "bold"], ["marginBottom", 10]]))], ["doctor-message-content", padStyleMapOf(utsMapOf([["fontSize", 14], ["color", "#333333"]]))], ["consult-now", padStyleMapOf(utsMapOf([["width", "100%"], ["height", 40], ["lineHeight", "40px"], ["backgroundColor", "#007aff"], ["color", "#FFFFFF"], ["textAlign", "center"], ["borderRadius", 5], ["marginTop", 30], ["fontSize", 16]]))], ["modal", padStyleMapOf(utsMapOf([["position", "fixed"], ["top", 0], ["left", 0], ["right", 0], ["bottom", 0], ["backgroundColor", "rgba(0,0,0,0.5)"], ["display", "flex"], ["justifyContent", "center"], ["alignItems", "center"]]))], ["modal-content", padStyleMapOf(utsMapOf([["backgroundColor", "#ffffff"], ["paddingTop", 20], ["paddingRight", 20], ["paddingBottom", 20], ["paddingLeft", 20], ["borderRadius", 5], ["width", "90%"], ["maxWidth", 300]]))], ["modal-header", padStyleMapOf(utsMapOf([["display", "flex"], ["flexDirection", "column"], ["fontWeight", "bold"]]))], ["date-picker", padStyleMapOf(utsMapOf([["display", "flex"], ["justifyContent", "space-around"], ["marginBottom", 10]]))], ["time-picker", padStyleMapOf(utsMapOf([["display", "flex"], ["flexWrap", "wrap"], ["flexDirection", "row"], ["gap", "10px"]]))], ["modal-footer", padStyleMapOf(utsMapOf([["display", "flex"], ["justifyContent", "flex-end"], ["marginTop", 10]]))], ["smailtabs", padStyleMapOf(utsMapOf([["display", "flex"], ["flexDirection", "row"], ["marginTop", 10], ["borderBottomWidth", 1], ["borderBottomStyle", "solid"], ["borderBottomColor", "#cccccc"]]))]])]
