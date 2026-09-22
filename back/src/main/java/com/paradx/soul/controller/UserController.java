@@ -11,6 +11,7 @@ import com.paradx.soul.utils.ValidationUtil;
 import com.paradx.soul.utils.XssUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户控制器
@@ -151,5 +152,19 @@ public class UserController {
             return Result.build(null, 400, "用户ID不能为空");
         }
         return userService.delUser(id);
+    }
+
+    /**
+     * 上传用户头像
+     * 支持JPG/PNG/GIF/WebP格式，最大5MB
+     */
+    @PostMapping("uploadAvatar")
+    public Result uploadAvatar(@RequestHeader String token,
+                               @RequestParam("file") MultipartFile file) {
+        // 校验文件是否为空
+        if (file == null || file.isEmpty()) {
+            return Result.build(null, 400, "请选择要上传的头像文件");
+        }
+        return userService.uploadAvatar(token, file);
     }
 }

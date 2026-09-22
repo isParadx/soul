@@ -6,13 +6,18 @@ import com.paradx.soul.pojo.User;
 import com.paradx.soul.service.UserService;
 import com.paradx.soul.mapper.UserMapper;
 import com.paradx.soul.utils.BCryptUtil;
+import com.paradx.soul.utils.FileUploadUtil;
 import com.paradx.soul.utils.JwtHelper;
 import com.paradx.soul.utils.Result;
 import com.paradx.soul.utils.ResultCodeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +34,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private JwtHelper jwtHelper;
     @Autowired
     private UserMapper userMapper;
+
+    @Value("${file.upload.path:uploads/avatars/}")
+    private String uploadPath;
 
     /**
      * 用户注册
@@ -170,5 +178,63 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String password = BCryptUtil.encrypt("123456");
         userMapper.resetPwd(password, id);
         return Result.ok(null);
+    }
+
+    /**
+     * 上传用户头像
+     * 包含文件安全校验和存储
+     */
+    @Override
+    public Result uploadAvatar(String token, MultipartFile file) {
+        // 获取用户ID
+        Long userId = jwtHelper.getUserId(token);
+        if (userId == null) {
+            return Result.build(null, ResultCodeEnum.NOTLOGIN);
+        }
+
+        // 校验文件安全性
+        String validateError = FileUploadUtil.validateImageFile(file);
+        if (validateError != null) {
+            return Result.build(null, 400, validateError);
+        }
+
+        // 查询用户现有信息（用于删除旧头像）
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return Result.build(null, ResultCodeEnum.NOTLOGIN);
+        }
+
+        try {
+            // 创建上传目录
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            // 删除旧头像文件
+            if (StringUtils.hasText(user.getImg())) {
+                String oldFilePath = uploadPath + user.getImg().substring(user.getImg().lastIndexOf("/") + 1);
+                File oldFile = new File(oldFilePath);
+                if (oldFile.exists()) {
+                    oldFile.delete();
+                }
+            }
+
+            // 生成安全的文件名并保存
+            String safeFileName = FileUploadUtil.generateSafeFileName(file.getOriginalFilename());
+            File destFile = new File(uploadPath + safeFileName);
+            file.transferTo(destFile);
+
+            // 更新用户头像路径
+            user.setImg("/uploads/avatars/" + safeFileName);
+            userMapper.changeUserInfo(user);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("imgUrl", user.getImg());
+            return Result.ok(data);
+
+        } catch (IOException e) {
+            return Result.build(null, 500, "头像上传失败：" + e.getMessage());
+        }
     }
 }
