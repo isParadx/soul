@@ -108,10 +108,10 @@ CREATE TABLE `user` (
   `userid` bigint NOT NULL,
   `nickname` varchar(45) NOT NULL,
   `sex` int NOT NULL,
-  `password` varchar(45) NOT NULL,
+  `password` varchar(100) NOT NULL,
   `phone` bigint DEFAULT NULL,
   `email` varchar(45) DEFAULT NULL,
-  `img` longblob,
+  `img` varchar(255) DEFAULT NULL,
   `role` int NOT NULL,
   PRIMARY KEY (`userid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -123,7 +123,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (101,'李楠',1,'e10adc3949ba59abbe56e057f20f883e',12213238324,'231321@qq.com',NULL,1),(102,'江心',1,'e10adc3949ba59abbe56e057f20f883e',12132323234,'2132132@qq.com',NULL,1),(103,'汪成',0,'e10adc3949ba59abbe56e057f20f883e',14329374756,NULL,NULL,1),(104,'张薇',1,'e10adc3949ba59abbe56e057f20f883e',12323343244,NULL,NULL,1),(111111,'admin',0,'e10adc3949ba59abbe56e057f20f883e',15637242634,'123@qq.com',NULL,2),(2233320103,'paradx',0,'e10adc3949ba59abbe56e057f20f883e',15867253472,'12312321@qq.com',NULL,0);
+INSERT INTO `user` VALUES (101,'李楠',1,'$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',12213238324,'231321@qq.com',NULL,1),(102,'江心',1,'$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',12132323234,'2132132@qq.com',NULL,1),(103,'汪成',0,'$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',14329374756,NULL,NULL,1),(104,'张薇',1,'$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',12323343244,NULL,NULL,1),(111111,'admin',0,'$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',15637242634,'123@qq.com',NULL,2),(2233320103,'paradx',0,'$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',15867253472,'12312321@qq.com',NULL,0);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
