@@ -1,5 +1,6 @@
 package com.paradx.soul.controller;
 
+import com.paradx.soul.annotation.RequireRole;
 import com.paradx.soul.pojo.User;
 import com.paradx.soul.pojo.vo.PasswordChangeRequest;
 import com.paradx.soul.service.UserService;
@@ -68,7 +69,9 @@ public class UserController {
 
     /**
      * 获取所有用户信息接口（支持关键词搜索）
+     * 权限：仅管理员可访问
      */
+    @RequireRole(adminOnly = true)
     @GetMapping("getAllUserInfo")
     public Result getAllUser(@RequestParam(value = "keywords", required = false) String keywords) {
         // XSS过滤搜索关键词
@@ -126,7 +129,9 @@ public class UserController {
 
     /**
      * 重置用户密码接口（管理员）
+     * 权限：仅管理员可访问
      */
+    @RequireRole(adminOnly = true)
     @PostMapping("ResetPassword")
     public Result resetPassword(@RequestBody Long id) {
         if (id == null) {
@@ -137,7 +142,9 @@ public class UserController {
 
     /**
      * 删除用户（管理员）
+     * 权限：仅管理员可访问
      */
+    @RequireRole(adminOnly = true)
     @PostMapping("delUser")
     public Result delUser(@RequestBody Long id) {
         if (id == null) {

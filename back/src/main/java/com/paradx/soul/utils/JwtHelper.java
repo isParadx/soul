@@ -30,11 +30,12 @@ public class JwtHelper {
     }
 
     /**
-     * 生成token字符串
+     * 生成token字符串（包含角色信息）
      * @param userId 用户ID
+     * @param role 用户角色（0-学生, 1-医生, 2-管理员）
      * @return JWT Token
      */
-    public String createToken(Long userId) {
+    public String createToken(Long userId, Integer role) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + tokenExpiration * 60 * 1000);
         
@@ -42,8 +43,18 @@ public class JwtHelper {
                 .subject("SOUL-USER")
                 .expiration(expiration)
                 .claim("userId", userId)
+                .claim("role", role)
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    /**
+     * 生成token字符串（兼容旧调用）
+     * @param userId 用户ID
+     * @return JWT Token
+     */
+    public String createToken(Long userId) {
+        return createToken(userId, null);
     }
 
     /**
@@ -56,11 +67,7 @@ public class JwtHelper {
             return null;
         }
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+            Claims claims = parseClaims(token);
             
             Object userIdObj = claims.get("userId");
             if (userIdObj instanceof Long) {
@@ -74,6 +81,40 @@ public class JwtHelper {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * 从token字符串获取用户角色
+     * @param token JWT Token
+     * @return 用户角色（0-学生, 1-医生, 2-管理员），无法获取时返回null
+     */
+    public Integer getUserRole(String token) {
+        if (token == null || token.isEmpty()) {
+            return null;
+        }
+        try {
+            Claims claims = parseClaims(token);
+            Object roleObj = claims.get("role");
+            if (roleObj instanceof Integer) {
+                return (Integer) roleObj;
+            } else if (roleObj instanceof Number) {
+                return ((Number) roleObj).intValue();
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 解析Token获取Claims
+     */
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**

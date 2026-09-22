@@ -1,6 +1,5 @@
 package com.paradx.soul.config;
 
-import com.paradx.soul.config.JwtAuthInterceptor;
 import com.paradx.soul.filter.XssFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -21,18 +20,40 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private JwtAuthInterceptor jwtAuthInterceptor;
 
+    @Autowired
+    private RoleAuthInterceptor roleAuthInterceptor;
+
     /**
      * 添加拦截器
-     * 安全加固：移除敏感接口的免认证访问
+     * JWT认证拦截器优先执行，角色权限拦截器其次
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // JWT认证拦截器（第一层：验证用户身份）
         registry.addInterceptor(jwtAuthInterceptor)
-                .addPathPatterns("/**")  // 拦截所有路径
-                .excludePathPatterns(     // 仅排除公开接口
+                .addPathPatterns("/**")
+                .excludePathPatterns(
                         "/user/login",
                         "/user/regist",
-                        "/doctor/getAllDocter",  // 医生列表公开（预约需要）
+                        "/doctor/getAllDocter",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/doc.html",
+                        "/webjars/**",
+                        "/error"
+                );
+
+        // 角色权限拦截器（第二层：验证用户权限）
+        registry.addInterceptor(roleAuthInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/user/login",
+                        "/user/regist",
+                        "/doctor/getAllDocter",
+                        "/user/getUserInfo",  // 所有登录用户可访问
+                        "/user/changeUserInfo",
+                        "/user/changePassword",
+                        "/consult/checkOrder",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/doc.html",

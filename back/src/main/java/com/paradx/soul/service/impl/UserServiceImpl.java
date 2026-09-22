@@ -70,8 +70,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (StringUtils.hasText(user.getPassword())
                 && BCryptUtil.matches(user.getPassword(), loginUser.getPassword()))
         {
-            // 生成token
-            String token = jwtHelper.createToken(loginUser.getUserid());
+            // 生成token（包含角色信息）
+            String token = jwtHelper.createToken(loginUser.getUserid(), loginUser.getRole());
             Map<String, Object> data = new HashMap<>();
             data.put("userId", loginUser.getUserid());
             // 设置角色信息

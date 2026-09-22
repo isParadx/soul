@@ -1,5 +1,6 @@
 package com.paradx.soul.controller;
 
+import com.paradx.soul.annotation.RequireRole;
 import com.paradx.soul.pojo.Doctor;
 import com.paradx.soul.service.DoctorService;
 import com.paradx.soul.utils.Result;
@@ -19,7 +20,7 @@ public class DoctorController {
     private DoctorService doctorService;
 
     /**
-     * 查询所有医师/搜索功能
+     * 查询所有医师/搜索功能（公开接口）
      */
     @GetMapping("getAllDocter")
     public Result getAllDocter(@RequestParam(value = "keywords", required = false) String keywords) {
@@ -34,8 +35,10 @@ public class DoctorController {
     }
 
     /**
-     * 添加医生信息
+     * 添加医生信息（管理员）
+     * 权限：仅管理员可访问
      */
+    @RequireRole(adminOnly = true)
     @PostMapping("addDoctorInfo")
     public Result addDoctorInfo(@RequestBody Doctor doctor) {
         // 参数校验
@@ -54,8 +57,10 @@ public class DoctorController {
     }
 
     /**
-     * 修改医生信息
+     * 修改医生信息（管理员）
+     * 权限：仅管理员可访问
      */
+    @RequireRole(adminOnly = true)
     @PostMapping("changeDoc")
     public Result change(@RequestBody Doctor doctor) {
         // 参数校验
@@ -73,8 +78,10 @@ public class DoctorController {
     }
 
     /**
-     * 删除医生信息
+     * 删除医生信息（管理员）
+     * 权限：仅管理员可访问
      */
+    @RequireRole(adminOnly = true)
     @PostMapping("delDocter")
     public Result delDoc(@RequestBody Long id) {
         if (id == null) {

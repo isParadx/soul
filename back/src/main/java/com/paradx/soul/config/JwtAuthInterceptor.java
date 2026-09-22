@@ -9,7 +9,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
  * JWT认证拦截器
- * 用于验证用户身份
+ * 用于验证用户身份，并将用户ID和角色存入request属性
  */
 @Component
 public class JwtAuthInterceptor implements HandlerInterceptor {
@@ -36,6 +36,11 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             if (userId != null) {
                 // 将用户ID存入request属性，供后续使用
                 request.setAttribute("userId", userId);
+                // 将用户角色存入request属性，供权限拦截器使用
+                Integer role = jwtHelper.getUserRole(token);
+                if (role != null) {
+                    request.setAttribute("userRole", role);
+                }
                 return true;
             }
         }

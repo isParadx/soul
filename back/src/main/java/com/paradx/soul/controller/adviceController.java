@@ -1,5 +1,6 @@
 package com.paradx.soul.controller;
 
+import com.paradx.soul.annotation.RequireRole;
 import com.paradx.soul.pojo.Advice;
 import com.paradx.soul.service.AdviceService;
 import com.paradx.soul.utils.Result;
@@ -23,8 +24,10 @@ public class adviceController {
     private AdviceService adviceService;
 
     /**
-     * 学生/医生提交意见接口
+     * 学生/医生提交意见接口（需登录）
+     * 权限：学生和医生可访问
      */
+    @RequireRole(value = {0, 1})
     @PostMapping("putAdvice")
     @Operation(summary = "提交匿名建议", description = "用户提交匿名建议")
     public Result putadvice(
@@ -45,7 +48,9 @@ public class adviceController {
 
     /**
      * 管理员查询意见接口
+     * 权限：仅管理员可访问
      */
+    @RequireRole(adminOnly = true)
     @GetMapping("getAdvice")
     @Operation(summary = "查询匿名建议", description = "管理员查询所有匿名建议")
     public Result getadvice() {

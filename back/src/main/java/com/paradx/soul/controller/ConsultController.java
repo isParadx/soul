@@ -1,5 +1,6 @@
 package com.paradx.soul.controller;
 
+import com.paradx.soul.annotation.RequireRole;
 import com.paradx.soul.pojo.Consultation;
 import com.paradx.soul.service.ConsultationService;
 import com.paradx.soul.utils.Result;
@@ -24,7 +25,9 @@ public class ConsultController {
 
     /**
      * 查询预约（模糊查询）
+     * 权限：医生和管理员可访问
      */
+    @RequireRole(value = {1, 2})
     @GetMapping("checkOrder")
     @Operation(summary = "查询预约记录", description = "根据关键词模糊查询咨询预约信息")
     public Result getThisConsult(
@@ -63,8 +66,10 @@ public class ConsultController {
     }
 
     /**
-     * 删除预约
+     * 删除预约（管理员）
+     * 权限：仅管理员可访问
      */
+    @RequireRole(adminOnly = true)
     @PostMapping("delOrder")
     @Operation(summary = "删除预约记录", description = "管理员删除一条预约咨询记录")
     public Result delOrder(
@@ -77,8 +82,10 @@ public class ConsultController {
     }
 
     /**
-     * 修改预约
+     * 修改预约（医生和管理员）
+     * 权限：医生和管理员可访问
      */
+    @RequireRole(value = {1, 2})
     @PostMapping("changeInfo")
     @Operation(summary = "修改预约记录", description = "修改一条预约咨询记录")
     public Result changeInfo(
