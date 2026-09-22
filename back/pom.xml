@@ -120,12 +120,18 @@
             <version>1.5</version>
         </dependency>
 
-        <!--h2依赖-->
+        <!-- 参数校验（@Valid, @NotNull等）-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!--h2依赖（仅用于测试，已升级到安全版本）-->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.4.193</version>
-            <scope>runtime</scope>
+            <version>2.2.224</version>
+            <scope>test</scope>
         </dependency>
 
 

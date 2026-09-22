@@ -32,7 +32,8 @@ mybatis-plus:
 jwt:
   token:
     tokenExpiration: 120 #有效时间,单位分钟
-    tokenSignKey: soul123456  #当前程序签名秘钥 自定义
+    # 安全加固：使用更强的签名密钥（生产环境应从环境变量读取）
+    tokenSignKey: Soul@2024#Secure$Jwt%Key^256bit!Random&String
 
 # 文件存储路径
 file:
