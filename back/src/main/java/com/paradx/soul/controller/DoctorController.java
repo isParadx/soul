@@ -3,61 +3,83 @@ package com.paradx.soul.controller;
 import com.paradx.soul.pojo.Doctor;
 import com.paradx.soul.service.DoctorService;
 import com.paradx.soul.utils.Result;
+import com.paradx.soul.utils.XssUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+/**
+ * 医生控制器
+ * 处理医生/咨询师相关的HTTP请求
+ */
 @RestController
 @RequestMapping("doctor")
-@CrossOrigin
 public class DoctorController {
+
     @Autowired
-    DoctorService doctorService;
+    private DoctorService doctorService;
+
     /**
-     * 查询所有医师/搜索功能实现（首页+详细信息）
-     * @return
+     * 查询所有医师/搜索功能
      */
     @GetMapping("getAllDocter")
-    public Result getAllDocter(@RequestParam(value = "keywords", required = false) String keywords){
-        Result result = doctorService.getAllDocter(keywords);
-        return result;
+    public Result getAllDocter(@RequestParam(value = "keywords", required = false) String keywords) {
+        // XSS过滤
+        if (keywords != null && !keywords.isEmpty()) {
+            keywords = XssUtil.clean(keywords);
+            if (keywords.length() > 50) {
+                keywords = keywords.substring(0, 50);
+            }
+        }
+        return doctorService.getAllDocter(keywords);
     }
 
     /**
-     *
-     *  添加医生信息接口
-     *  @return
+     * 添加医生信息
      */
     @PostMapping("addDoctorInfo")
-    public Result addDoctorInfo(@RequestBody Doctor doctor){
-        Result result = doctorService.addDoctor(doctor);
-        return result;
+    public Result addDoctorInfo(@RequestBody Doctor doctor) {
+        // 参数校验
+        if (doctor.getId() == null || doctor.getName() == null || doctor.getName().isEmpty()) {
+            return Result.build(null, 400, "医生ID和姓名不能为空");
+        }
+        // XSS过滤
+        doctor.setName(XssUtil.clean(doctor.getName()));
+        if (doctor.getIntruduce() != null) {
+            doctor.setIntruduce(XssUtil.clean(doctor.getIntruduce()));
+        }
+        if (doctor.getSay() != null) {
+            doctor.setSay(XssUtil.clean(doctor.getSay()));
+        }
+        return doctorService.addDoctor(doctor);
     }
 
     /**
-     *
-     *  修改医生信息接口
-     *  @return
+     * 修改医生信息
      */
     @PostMapping("changeDoc")
-    public Result change(@RequestBody Doctor doctor){
-        Result result =doctorService.changeDoctor(doctor);
-        return  result;
+    public Result change(@RequestBody Doctor doctor) {
+        // 参数校验
+        if (doctor.getId() == null) {
+            return Result.build(null, 400, "医生ID不能为空");
+        }
+        // XSS过滤
+        if (doctor.getName() != null) {
+            doctor.setName(XssUtil.clean(doctor.getName()));
+        }
+        if (doctor.getIntruduce() != null) {
+            doctor.setIntruduce(XssUtil.clean(doctor.getIntruduce()));
+        }
+        return doctorService.changeDoctor(doctor);
     }
 
     /**
-     *
-     *  删除医生信息接口
-     *  @return
+     * 删除医生信息
      */
     @PostMapping("delDocter")
-    public Result delDoc(@RequestBody Long id){
-        Result result =doctorService.delDoc(id);
-        return  result;
+    public Result delDoc(@RequestBody Long id) {
+        if (id == null) {
+            return Result.build(null, 400, "医生ID不能为空");
+        }
+        return doctorService.delDoc(id);
     }
-
-
 }

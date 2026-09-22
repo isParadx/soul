@@ -38,12 +38,12 @@
 
     <select id="getConsult" resultType="com.paradx.soul.pojo.Consultation">
         select * from consultation
-        <if test="keywords != null">
-            where id = #{keywords}
-            or stu_id = #{keywords}
-            or doc_id = #{keywords}
-            or appointment_time = #{keywords}
-            or status = #{keywords}
+        <if test="keywords != null and keywords != ''">
+            where id LIKE CONCAT('%', #{keywords}, '%')
+            or stu_id LIKE CONCAT('%', #{keywords}, '%')
+            or doc_id LIKE CONCAT('%', #{keywords}, '%')
+            or appointment_time LIKE CONCAT('%', #{keywords}, '%')
+            or status LIKE CONCAT('%', #{keywords}, '%')
         </if>
     </select>
 </mapper>

@@ -56,12 +56,11 @@
 
     <select id="getAllUser" resultType="com.paradx.soul.pojo.User">
         select * from user
-        <if test="keywords!= null">
-            where userid = #{keywords}
-            or nickname = #{keywords}
-            or sex = #{keywords}
-            or phone = #{keywords}
-            or email = #{keywords}
+        <if test="keywords!= null and keywords != ''">
+            where userid LIKE CONCAT('%', #{keywords}, '%')
+            or nickname LIKE CONCAT('%', #{keywords}, '%')
+            or phone LIKE CONCAT('%', #{keywords}, '%')
+            or email LIKE CONCAT('%', #{keywords}, '%')
         </if>
     </select>
 
