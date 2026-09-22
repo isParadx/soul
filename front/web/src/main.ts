@@ -5,6 +5,7 @@ import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { customAxios } from './api/axios'; 
+import './assets/main.css';
 
 // 创建 Vue 应用实例
 const app = createApp(App);

@@ -1,14 +1,33 @@
 <template>
   <div class="start-container">
     <div class="start-form">
-      <el-tabs v-model="activeTab" class="tab-bar">
+      <!-- 品牌区域 -->
+      <div class="brand-area">
+        <div class="brand-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="22" stroke="#5B8C8A" stroke-width="2" fill="#F7FAF9"/>
+            <path d="M24 12C24 12 16 20 16 28C16 32.4183 19.5817 36 24 36C28.4183 36 32 32.4183 32 28C32 20 24 12 24 12Z" fill="#5B8C8A" opacity="0.15"/>
+            <path d="M24 14V34M18 24H30" stroke="#5B8C8A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1 class="brand-title">心灵驿站</h1>
+        <p class="brand-subtitle">学生心理咨询预约系统</p>
+      </div>
+
+      <!-- 登录/注册切换 -->
+      <el-tabs v-model="activeTab" class="login-tabs">
         <el-tab-pane name="login" label="登录">
-          <login-form v-if="activeTab === 'login'" class="form-container" />
+          <login-form v-if="activeTab === 'login'" />
         </el-tab-pane>
         <el-tab-pane name="register" label="注册">
-          <register-form v-if="activeTab === 'register'" class="form-container" />
+          <register-form v-if="activeTab === 'register'" />
         </el-tab-pane>
       </el-tabs>
+    </div>
+    
+    <!-- 底部提示 -->
+    <div class="footer-hint">
+      <p>如有紧急心理危机，请拨打全国心理援助热线：400-161-9995</p>
     </div>
   </div>
 </template>
@@ -18,26 +37,26 @@ import LoginForm from '@/components/OutMain/Login.vue';
 import RegisterForm from '@/components/OutMain/Register.vue';
 
 export default {
+  name: 'StartPage',
   components: {
     LoginForm,
     RegisterForm
   },
   data() {
     return {
-      activeTab: 'login' // 默认显示登录标签
+      activeTab: 'login'
     };
   }
 };
 </script>
 
 <style scoped>
-/* 确保html和body的高度为100% */
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Arial', sans-serif; /* 设置默认字体 */
 }
+
 #app {
   height: 100%;
 }
@@ -45,104 +64,102 @@ html, body {
 .start-container {
   display: flex;
   flex-direction: column;
-  align-items: center; 
-  height: 98vh;
-  background-image: url('../../assets/loginback.png');
-  background-size: 100vw 100vh; 
-  background-position: center; 
-  background-repeat: no-repeat; 
-}
-.start-form{
-  position: absolute; 
-  left: 40vw; 
-  top: 30vh; 
-  display: flex;
-  flex-direction: column;
-  align-items: center; 
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #F5F7F6;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 12px; 
-  background: rgba(255, 255, 255, 0.8); 
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.tab-bar {
-  border: none;
-}
-
-.el-tabs__nav-wrap::after,
-.el-tabs__nav-scroll::after {
-  height: 0;
-}
-
-.el-tabs__item {
-  border: 1px solid #dcdfe6;
-  border-bottom: none;
-  transition: color 0.3s;
-}
-
-.el-tabs__item.is-active {
-  border-color: #dcdfe6;
-  border-bottom: 2px solid #409eff;
-  color: #409eff;
-}
-
-.el-tabs__content {
-  border: none;
-  flex-grow: 1;
-}
-
-.el-tab-pane {
-  padding: 20px 0;
-  width: 90%; 
-}
-
-.form-container {
-  width: 100%;
-  background: #fff; 
+.start-form {
+  width: 420px;
+  max-width: 100%;
+  background-color: #FFFFFF;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
-  padding: 10px; 
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  padding: 40px 36px 32px;
 }
 
-/* 输入框和按钮的样式 */
-.form-container input {
-  width: calc(100% - 20px); 
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #dcdfe6; 
-  border-radius: 4px; 
-  transition: border-color 0.3s; 
+/* 品牌区域 */
+.brand-area {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #EEF1F0;
 }
 
-.form-container input:focus {
-  border-color: #409eff; 
-  outline: none; 
+.brand-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
 }
 
-.form-container button {
+.brand-icon svg {
   width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 4px;
-  background-color: #409eff;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  height: 100%;
 }
 
-.form-container button:hover {
-  background-color: #337ecc; 
+.brand-title {
+  font-size: 24px;
+  font-weight: 500;
+  color: #2D3A3A;
+  margin: 0 0 6px;
+  letter-spacing: 2px;
 }
 
-/* 登录/注册切换按钮的样式 */
-.el-tabs__item {
-  padding: 10px 20px;
-  margin: 0 5px;
-  border-radius: 4px; 
-  background-color: rgba(255, 255, 255, 0.5); 
-  color: #333;
-  font-weight: bold;
+.brand-subtitle {
+  font-size: 13px;
+  color: #8A9A98;
+  margin: 0;
+}
+
+/* 标签页 */
+.login-tabs {
+  --el-tabs-header-height: 44px;
+}
+
+:deep(.el-tabs__header) {
+  margin-bottom: 24px;
+}
+
+:deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background-color: #EEF1F0;
+}
+
+:deep(.el-tabs__item) {
+  font-size: 15px;
+  font-weight: 500;
+  color: #7A8A88;
+  padding: 0 20px;
+  height: 44px;
+  line-height: 44px;
+  transition: color 0.2s;
+}
+
+:deep(.el-tabs__item:hover) {
+  color: #5B8C8A;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: #3D6A68;
+}
+
+:deep(.el-tabs__active-bar) {
+  height: 2px;
+  background-color: #5B8C8A;
+}
+
+/* 底部提示 */
+.footer-hint {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.footer-hint p {
+  font-size: 12px;
+  color: #9AAA98;
+  margin: 0;
+  line-height: 1.6;
 }
 </style>
