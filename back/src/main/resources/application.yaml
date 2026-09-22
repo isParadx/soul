@@ -3,13 +3,18 @@ server:
   port: 8080
   servlet:
     context-path: /
+  # 文件上传配置
+  multipart:
+    enabled: true
+    max-file-size: 10MB
+    max-request-size: 10MB
 
 # 连接池配置
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
-      url: jdbc:mysql://localhost:3306/soul?serverTimezone=UTC
+      url: jdbc:mysql://localhost:3306/soul?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
       username: root
       password: '123456'
       driver-class-name: com.mysql.cj.jdbc.Driver
@@ -17,8 +22,19 @@ spring:
 # mybatis-plus的配置
 mybatis-plus:
   type-aliases-package: com.paradx.soul.pojo
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
 #jwt配置
 jwt:
   token:
     tokenExpiration: 120 #有效时间,单位分钟
     tokenSignKey: soul123456  #当前程序签名秘钥 自定义
+
+# 文件存储路径
+file:
+  upload:
+    path: uploads/avatars/
