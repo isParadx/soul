@@ -27,6 +27,13 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
         // 获取Token（从header或parameter中）
         String token = request.getHeader("token");
         if (token == null || token.isEmpty()) {
+            // 兼容Authorization: Bearer <token>格式（axios全局拦截器默认发送）
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+            }
+        }
+        if (token == null || token.isEmpty()) {
             token = request.getParameter("token");
         }
 

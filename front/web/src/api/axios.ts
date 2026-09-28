@@ -14,6 +14,8 @@ const customAxios = axios.create({
 customAxios.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token) {
+    // 后端JwtAuthInterceptor读取"token"请求头（兼容Authorization）
+    config.headers['token'] = token;
     config.headers.Authorization = `Bearer ${token}`;
   }
   // 确保每次请求都携带设备类型标识

@@ -19,9 +19,15 @@ app.use(ElementPlus);
 app.config.globalProperties.$axios = customAxios;
 // 全局消息提示（Element Plus不会自动注册到globalProperties，需手动绑定）
 app.config.globalProperties.$message = ElMessage;
-// 全局错误提示：this.$error(msg)
+// 全局提示：this.$error(msg) / this.$success(msg) / this.$warning(msg)
 app.config.globalProperties.$error = (msg: string) => {
   ElMessage.error(msg || '操作失败，请稍后重试');
+};
+app.config.globalProperties.$success = (msg: string) => {
+  ElMessage.success(msg || '操作成功');
+};
+app.config.globalProperties.$warning = (msg: string) => {
+  ElMessage.warning(msg || '警告');
 };
 
 // 挂载 Vue 应用实例
