@@ -10,6 +10,23 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
  */
 public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
+    /**
+     * 不做XSS清理的请求头白名单
+     * 这些头具有固定格式（如URL、MIME类型），转义会破坏其语义，
+     * 且它们由浏览器/客户端生成，不直接用于页面渲染，无XSS风险
+     */
+    private static final java.util.Set<String> SKIP_CLEAN_HEADERS = java.util.Set.of(
+            "origin",           // CORS来源，转义会导致Spring CORS解析失败
+            "referer",          // 来源页面URL
+            "host",             // 主机头
+            "content-type",     // MIME类型
+            "user-agent",       // 浏览器标识（设备检测依赖）
+            "accept",           // 内容协商
+            "x-device-type",    // 设备类型标识
+            "authorization",    // 认证令牌
+            "token"             // 认证令牌
+    );
+
     public XssHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
     }
@@ -44,9 +61,9 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         if (value == null) {
             return null;
         }
-        // 对请求头进行XSS清理（排除Authorization等特殊头）
-        if ("authorization".equalsIgnoreCase(name) || "token".equalsIgnoreCase(name)) {
-            return value;  // Token不做处理，否则会导致认证失败
+        // 结构性/认证类请求头不做清理，避免破坏Origin、Token等格式
+        if (name != null && SKIP_CLEAN_HEADERS.contains(name.toLowerCase())) {
+            return value;
         }
         return XssUtil.clean(value);
     }

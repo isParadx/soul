@@ -70,9 +70,11 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
-                    "http://localhost:5173",   // Vite开发服务器
+                    "http://localhost:5173",   // Vite开发服务器（默认端口）
+                    "http://localhost:5174",   // Vite开发服务器（5173被占用时自动+1）
                     "http://localhost:8080",   // Spring Boot
                     "http://127.0.0.1:5173",
+                    "http://127.0.0.1:5174",
                     "http://127.0.0.1:8080"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
