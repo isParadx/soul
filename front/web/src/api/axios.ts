@@ -5,7 +5,8 @@ const customAxios = axios.create({
   baseURL: 'http://localhost:8080',
   timeout: 15000,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-Device-Type': 'pc'  // 标识为PC端
   }
 });
 
@@ -15,6 +16,8 @@ customAxios.interceptors.request.use(config => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // 确保每次请求都携带设备类型标识
+  config.headers['X-Device-Type'] = 'pc';
   return config;
 }, error => {
   return Promise.reject(error);

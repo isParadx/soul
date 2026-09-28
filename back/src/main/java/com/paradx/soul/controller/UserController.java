@@ -4,6 +4,7 @@ import com.paradx.soul.annotation.RequireRole;
 import com.paradx.soul.pojo.User;
 import com.paradx.soul.pojo.vo.PasswordChangeRequest;
 import com.paradx.soul.service.UserService;
+import com.paradx.soul.utils.DeviceUtil;
 import com.paradx.soul.utils.JwtHelper;
 import com.paradx.soul.utils.Result;
 import com.paradx.soul.utils.ResultCodeEnum;
@@ -11,6 +12,8 @@ import com.paradx.soul.utils.ValidationUtil;
 import com.paradx.soul.utils.XssUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -54,9 +57,11 @@ public class UserController {
 
     /**
      * 登录接口
+     * 支持设备类型检测，限制不同角色在指定设备上登录
      */
     @PostMapping("login")
-    public Result login(@RequestBody User user) {
+    public Result login(@RequestBody User user, 
+                        @RequestHeader(value = "X-Device-Type", required = false) String deviceType) {
         // 基础校验
         if (user.getUserid() == null || user.getPassword() == null) {
             return Result.build(null, 400, "用户名或密码不能为空");
@@ -65,7 +70,24 @@ public class UserController {
         if (user.getPassword() != null) {
             user.setPassword(XssUtil.clean(user.getPassword()));
         }
-        return userService.login(user);
+
+        // 检测设备类型
+        DeviceUtil.DeviceType detectedDevice;
+        if (deviceType != null && !deviceType.isEmpty()) {
+            // 优先使用请求头指定的设备类型
+            detectedDevice = DeviceUtil.DeviceType.fromCode(deviceType);
+        } else {
+            // 通过User-Agent自动检测
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                detectedDevice = DeviceUtil.detectDevice(attributes.getRequest());
+            } else {
+                detectedDevice = DeviceUtil.DeviceType.PC;
+            }
+        }
+
+        // 调用登录服务（传入设备类型）
+        return userService.login(user, detectedDevice);
     }
 
     /**

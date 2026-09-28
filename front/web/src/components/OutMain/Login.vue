@@ -75,12 +75,15 @@ export default {
           this.$axios.post('/user/login', this.loginForm)
             .then(res => {
               const data = res.data.data;
-              if (data.role === "学生") {
-                this.$message.warning("学生用户请移步至手机端操作");
-              } else if (data.role === "管理员") {
+              if (data.role === "管理员") {
                 this.$message.success("登录成功");
                 localStorage.setItem('token', data.token);
                 sessionStorage.setItem("token", data.token);
+                // 存储用户信息
+                sessionStorage.setItem("userInfo", JSON.stringify({
+                  role: data.role,
+                  userId: data.userId
+                }));
                 setTimeout(() => {
                   this.$router.push('/master/userinfo');
                 }, 800);
@@ -88,14 +91,27 @@ export default {
                 this.$message.success("登录成功");
                 localStorage.setItem('token', data.token);
                 sessionStorage.setItem("token", data.token);
+                // 存储用户信息
+                sessionStorage.setItem("userInfo", JSON.stringify({
+                  role: data.role,
+                  userId: data.userId
+                }));
                 setTimeout(() => {
                   this.$router.push('/doctor/appointments');
                 }, 800);
               }
             })
             .catch(error => {
+              // 处理不同类型的错误
+              const status = error.response?.status;
               const msg = error.response?.data?.message || error.message || '登录失败';
-              this.$error(msg);
+              
+              if (status === 403) {
+                // 设备访问限制错误 - 使用警告提示
+                this.$message.warning(msg);
+              } else {
+                this.$error(msg);
+              }
             })
             .finally(() => {
               this.loading = false;

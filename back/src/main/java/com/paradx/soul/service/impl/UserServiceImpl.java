@@ -6,6 +6,7 @@ import com.paradx.soul.pojo.User;
 import com.paradx.soul.service.UserService;
 import com.paradx.soul.mapper.UserMapper;
 import com.paradx.soul.utils.BCryptUtil;
+import com.paradx.soul.utils.DeviceUtil;
 import com.paradx.soul.utils.FileUploadUtil;
 import com.paradx.soul.utils.JwtHelper;
 import com.paradx.soul.utils.Result;
@@ -60,10 +61,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 用户登录
-     * 使用BCrypt验证密码
+     * 使用BCrypt验证密码，并验证设备类型与角色是否匹配
      */
     @Override
-    public Result login(User user) {
+    public Result login(User user, DeviceUtil.DeviceType deviceType) {
         // 根据账号查询
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getUserid, user.getUserid());
@@ -78,6 +79,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (StringUtils.hasText(user.getPassword())
                 && BCryptUtil.matches(user.getPassword(), loginUser.getPassword()))
         {
+            // 设备类型验证：检查角色是否允许在当前设备上登录
+            if (!DeviceUtil.isRoleAllowedOnDevice(loginUser.getRole(), deviceType)) {
+                String deviceName = DeviceUtil.getDeviceName(deviceType);
+                String allowedDesc = DeviceUtil.getAllowedDeviceDescription(loginUser.getRole());
+                return Result.build(null, 403, "访问受限：" + allowedDesc + "（当前为" + deviceName + "）");
+            }
+
             // 生成token（包含角色信息）
             String token = jwtHelper.createToken(loginUser.getUserid(), loginUser.getRole());
             Map<String, Object> data = new HashMap<>();
@@ -89,6 +97,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 case 2: data.put("role", "管理员"); break;
             }
             data.put("token", token);
+            data.put("deviceType", deviceType.getCode()); // 返回设备类型信息
             return Result.ok(data);
         }
 
