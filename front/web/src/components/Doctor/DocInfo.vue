@@ -140,6 +140,7 @@ export default {
       uploading: false,
       account: '',
       img: '',
+      docExists: false,
       customTag: '',
       defaultTags: [],
       selectedTags: [],
@@ -230,10 +231,14 @@ export default {
         const docList = docRes.data.data;
         if (docList && docList.length > 0) {
           const doc = docList.find(d => String(d.id) === String(this.account)) || docList[0];
+          this.docExists = true;
           this.form.id = doc.id;
           this.form.intruduce = doc.intruduce || '';
           this.form.say = doc.say || '';
           this.selectedTags = doc.type ? doc.type.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [];
+        } else {
+          // 注册时跳过了执业信息完善，尚无医生档案，保存时自动建档
+          this.docExists = false;
         }
       } catch (error) {
         this.$message.error('加载个人信息失败，请刷新重试');
@@ -326,8 +331,9 @@ export default {
             this.$message.error(userRes.data.message || '基本信息保存失败');
             return;
           }
-          // 2. 保存执业信息
-          const docRes = await this.$axios.post('/doctor/changeDoc', {
+          // 2. 保存执业信息（无档案时自动建档）
+          const docApi = this.docExists ? '/doctor/changeDoc' : '/doctor/addDoctorInfo';
+          const docRes = await this.$axios.post(docApi, {
             id: this.form.id || this.account,
             intruduce: this.form.intruduce,
             type: this.selectedTags.join(','),
@@ -338,6 +344,7 @@ export default {
             this.$message.error(docRes.data.message || '执业信息保存失败');
             return;
           }
+          this.docExists = true;
           // 同步会话缓存中的昵称
           const info = sessionStorage.getItem('userInfo');
           if (info) {
