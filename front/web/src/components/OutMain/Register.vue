@@ -80,7 +80,20 @@ export default {
         callback();
       }
     };
-    
+    // 与后端ValidationUtil.isValidPassword保持一致：6-20位，必须同时包含字母和数字
+    const validatePassword = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error('请输入密码'));
+      }
+      if (value.length < 6 || value.length > 20) {
+        return callback(new Error('密码长度为6-20位'));
+      }
+      if (!/[A-Za-z]/.test(value) || !/\d/.test(value)) {
+        return callback(new Error('密码需同时包含字母和数字'));
+      }
+      callback();
+    };
+
     return {
       registerForm: {
         userid: '',
@@ -95,15 +108,15 @@ export default {
       rules: {
         userid: [
           { required: true, message: '请输入账号', trigger: 'blur' },
-          { min: 3, max: 20, message: '账号长度为3-20个字符', trigger: 'blur' }
+          { pattern: /^\d{3,19}$/, message: '账号须为数字（学号/工号）', trigger: 'blur' }
         ],
         nickname: [
           { required: true, message: '请输入昵称', trigger: 'blur' },
-          { min: 2, max: 16, message: '昵称长度为2-16个字符', trigger: 'blur' }
+          { pattern: /^[\u4e00-\u9fa5a-zA-Z0-9_]{2,20}$/, message: '昵称为2-20位，支持中英文、数字、下划线', trigger: 'blur' }
         ],
         password: [
           { required: true, message: '请输入密码', trigger: 'blur' },
-          { min: 6, max: 30, message: '密码长度为6-30个字符', trigger: 'blur' }
+          { validator: validatePassword, trigger: 'blur' }
         ],
         repeatPassword: [
           { required: true, message: '请确认密码', trigger: 'blur' },
@@ -122,18 +135,15 @@ export default {
   },
   methods: {
     submitRegister() {
-      this.$refs.registerForm.validate((valid) => {
+      this.$refs.registerForm.validate((valid, invalidFields) => {
         if (valid) {
-          const filteredForm = Object.keys(this.registerForm)
-            .filter(key => this.registerForm[key] !== '' && this.registerForm[key] != null)
-            .reduce((obj, key) => {
-              obj[key] = this.registerForm[key];
-              return obj;
-            }, {});
           sessionStorage.setItem('userForm', JSON.stringify(this.registerForm));
           this.$router.push('/writeinfo');
         } else {
-          this.$message.warning('请检查表单填写是否完整');
+          // 展示第一条具体校验错误，帮助用户在进入下一步前修正格式问题
+          const firstField = invalidFields && Object.keys(invalidFields)[0];
+          const firstMsg = firstField ? invalidFields[firstField][0].message : null;
+          this.$message.warning(firstMsg || '请检查表单填写是否完整');
         }
       });
     }

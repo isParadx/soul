@@ -5,6 +5,7 @@ import com.paradx.soul.pojo.Doctor;
 import com.paradx.soul.service.DoctorService;
 import com.paradx.soul.utils.Result;
 import com.paradx.soul.utils.XssUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,15 +58,21 @@ public class DoctorController {
     }
 
     /**
-     * 修改医生信息（管理员）
-     * 权限：仅管理员可访问
+     * 修改医生信息
+     * 权限：医生本人或管理员
      */
-    @RequireRole(adminOnly = true)
+    @RequireRole({1, 2})
     @PostMapping("changeDoc")
-    public Result change(@RequestBody Doctor doctor) {
+    public Result change(@RequestBody Doctor doctor, HttpServletRequest request) {
         // 参数校验
         if (doctor.getId() == null) {
             return Result.build(null, 400, "医生ID不能为空");
+        }
+        // 医生角色只能修改自己的档案（管理员可修改任意医生）
+        Integer userRole = (Integer) request.getAttribute("userRole");
+        Long userId = (Long) request.getAttribute("userId");
+        if (userRole != null && userRole == 1 && userId != null) {
+            doctor.setId(userId);
         }
         // XSS过滤
         if (doctor.getName() != null) {
