@@ -1,96 +1,113 @@
 <template>
-  <div class="container">
-    <!-- 左侧视图 -->
-    <div class="left-view">
-      <el-form-item class="form-item">
-        <el-label>昵 称：</el-label>
-        <el-input v-model="user.nickname" placeholder="请输入昵称" />
-      </el-form-item>
+  <div class="doc-info-page">
+    <el-form
+      ref="docInfoForm"
+      :model="form"
+      :rules="rules"
+      label-position="top"
+      class="doc-info-card"
+    >
+      <!-- 基本信息区 -->
+      <div class="section">
+        <div class="section-title"><span class="bar"></span>基本信息</div>
+        <el-row :gutter="24">
+          <el-col :xs="24" :md="12">
+            <el-form-item label="昵称" prop="nickname">
+              <el-input v-model="form.nickname" placeholder="请输入昵称" />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="电话" prop="phone">
+              <el-input v-model="form.phone" placeholder="请输入手机号" />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="性别" prop="sex">
+              <el-select v-model="form.sex" placeholder="请选择性别" style="width: 100%;">
+                <el-option label="男" :value="0" />
+                <el-option label="女" :value="1" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="form.email" placeholder="请输入邮箱" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </div>
 
-      <el-form-item class="form-item">
-        <el-label>电 话：</el-label>
-        <el-input v-model="user.phone" placeholder="请输入手机号" />
-      </el-form-item>
-
-      <el-form-item class="form-item">
-        <el-label>性 别：</el-label>
-        <el-select v-model="user.sex" placeholder="请选择性别">
-          <el-option
-            v-for="(gender, index) in genders"
-            :key="index"
-            :label="gender"
-            :value="index"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item class="form-item">
-        <el-label>邮箱：</el-label>
-        <el-input v-model="user.email" placeholder="请输入邮箱" />
-      </el-form-item>
-
-      <el-button class="save-btn" @click="saveInfo">确认修改</el-button>
-    </div>
-
-    <!-- 右侧视图 -->
-    <div class="right-view">
-      <el-form ref="doctorForm" :model="doctorForm" :rules="rules" label-width="120px">
+      <!-- 执业信息区 -->
+      <div class="section">
+        <div class="section-title"><span class="bar"></span>执业信息</div>
         <el-form-item label="个人简介" prop="intruduce">
           <el-input
             type="textarea"
-            v-model="doctorForm.intruduce"
-            :autosize="{ minRows: 4, maxRows: 6}"
+            v-model="form.intruduce"
+            :autosize="{ minRows: 3, maxRows: 6 }"
+            maxlength="200"
+            show-word-limit
             placeholder="请输入个人简介"
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item label="擅长领域" prop="type">
-          <div class="type-tip">医生标签之间用逗号隔开，一个标签不超过七个字</div>
           <el-input
             type="textarea"
-            v-model="doctorForm.type"
-            :autosize="{ minRows: 4, maxRows: 6}"
+            v-model="form.type"
+            :autosize="{ minRows: 2, maxRows: 5 }"
+            maxlength="60"
             placeholder="请输入擅长领域"
-          ></el-input>
+          />
+          <div class="field-tip">医生标签之间用逗号隔开，一个标签不超过七个字</div>
         </el-form-item>
-        <el-form-item label="医师寄语" prop="say">
+        <el-form-item label="医师寄语（选填）" prop="say">
           <el-input
             type="textarea"
-            v-model="doctorForm.say"
-            :autosize="{ minRows: 4, maxRows: 6}"
+            v-model="form.say"
+            :autosize="{ minRows: 2, maxRows: 5 }"
+            maxlength="100"
+            show-word-limit
             placeholder="请输入医师寄语"
-          ></el-input>
+          />
         </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submitForm" class="submit-button">确认修改</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+      </div>
+
+      <el-button
+        type="primary"
+        class="save-btn"
+        :loading="saving"
+        @click="saveAll"
+      >{{ saving ? '正在保存...' : '保存修改' }}</el-button>
+    </el-form>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
-import axios from 'axios';
-
 export default {
+  name: 'DocInfo',
   data() {
     return {
-      token: sessionStorage.getItem('token'),
-      user: {
+      saving: false,
+      userid: '',
+      // 基本信息与执业信息合并为一个表单模型
+      form: {
         userid: '',
         nickname: '',
         phone: '',
-        sex: '',
+        sex: 0,
         email: '',
-      },
-      genders: ['男', '女'],
-      doctorForm: {
-        id:'',
+        id: '',
         intruduce: '',
         type: '',
         say: ''
       },
       rules: {
+        nickname: [
+          { required: true, message: '请输入昵称', trigger: 'blur' }
+        ],
+        phone: [
+          { required: true, message: '请输入手机号', trigger: 'blur' }
+        ],
         intruduce: [
           { required: true, message: '请输入个人简介', trigger: 'blur' }
         ],
@@ -101,83 +118,85 @@ export default {
       }
     };
   },
-
   mounted() {
-    this.getUserInfo();
-    this.getDocInfo();
+    this.loadAll();
   },
-
   methods: {
-    getUserInfo() {
-      this.$axios.get('/user/getUserInfo', {
-        headers: {
-          token: sessionStorage.getItem("token")
-        }
-      })
-      .then((res) => {
-        this.user = res.data.data.loginUser;
-      })
-      .catch(() => { });
-    },
-    onGenderChange(value) {
-      this.user.sex = this.genders[value];
-    },
-    saveInfo() {
-      if (this.user.nickname && this.user.sex && this.user.phone && this.user.email) {
-        this.$axios.post('/user/changeUserInfo', this.user, {
-          headers: {
-            token: sessionStorage.getItem("token")
-          }
-        })
-        .then(() => {
-          this.$message.success('修改成功！');
-        })
-        .catch(() => {
-          this.$message.error('错误，保存失败');
+    async loadAll() {
+      try {
+        // 1. 先取当前登录用户（拿到 userid 后才能查询对应医生档案）
+        const userRes = await this.$axios.get('/user/getUserInfo');
+        const loginUser = (userRes.data.data && userRes.data.data.loginUser) || {};
+        this.userid = loginUser.userid;
+        this.form.userid = loginUser.userid;
+        this.form.nickname = loginUser.nickname;
+        this.form.phone = loginUser.phone;
+        this.form.sex = loginUser.sex || 0;
+        this.form.email = loginUser.email;
+
+        // 2. 再按 userid 精确查询医生档案（避免竞态查出别人的数据）
+        const docRes = await this.$axios.get('/doctor/getAllDocter', {
+          params: { keywords: this.userid }
         });
-      } else {
-        this.$message.error('错误，请检查所有字段');
+        const docList = docRes.data.data;
+        if (docList && docList.length > 0) {
+          const doc = docList.find(d => String(d.id) === String(this.userid)) || docList[0];
+          this.form.id = doc.id;
+          this.form.intruduce = doc.intruduce || '';
+          this.form.type = doc.type || '';
+          this.form.say = doc.say || '';
+        }
+      } catch (error) {
+        this.$message.error('加载个人信息失败，请刷新重试');
       }
     },
     validateSpecialty(rule, value, callback) {
       if (!value) {
         return callback(new Error('擅长领域不能为空'));
       }
-      const tags = value.split(',');
+      const tags = value.split(/[,，]/);
       const isInvalid = tags.some(tag => tag.length > 7 || !tag.trim());
       if (isInvalid) {
         return callback(new Error('每个标签不超过七个字且不能为空'));
       }
       return callback();
     },
-    submitForm() {
-      this.$refs.doctorForm.validate((valid) => {
-        if (valid) {
-          this.submitData();
-        } else {
-          this.$message.success('表单验证失败！');
-          return false;
+    saveAll() {
+      this.$refs.docInfoForm.validate(async (valid) => {
+        if (!valid) return;
+        this.saving = true;
+        try {
+          // 1. 保存基本信息
+          const userRes = await this.$axios.post('/user/changeUserInfo', {
+            userid: this.form.userid,
+            nickname: this.form.nickname,
+            phone: this.form.phone,
+            sex: this.form.sex,
+            email: this.form.email
+          });
+          if (userRes.data.code !== 200) {
+            this.$message.error(userRes.data.message || '基本信息保存失败');
+            return;
+          }
+          // 2. 保存执业信息
+          const docRes = await this.$axios.post('/doctor/changeDoc', {
+            id: this.form.id || this.userid,
+            intruduce: this.form.intruduce,
+            type: this.form.type.split(/[,，]/).map(t => t.trim()).join(','),
+            say: this.form.say,
+            name: this.form.nickname
+          });
+          if (docRes.data.code !== 200) {
+            this.$message.error(docRes.data.message || '执业信息保存失败');
+            return;
+          }
+          this.$message.success('修改成功！');
+        } catch (error) {
+          const msg = error.response && error.response.data && error.response.data.message;
+          this.$message.error(msg || '保存失败，请稍后重试');
+        } finally {
+          this.saving = false;
         }
-      });
-    },
-    submitData() {
-      // 修改医生信息
-      this.$axios.post('/doctor/changeDoc', this.doctorForm).then((res) => {
-        this.$message.success('修改成功！');
-      }).catch((error) => {
-        this.$message.success('错误！');
-      });
-        
-    },
-    getDocInfo() {
-      this.$axios.get('/doctor/getAllDocter', {
-        params: {
-          keywords: this.user.userid
-        }
-      }).then((res) => {
-        this.doctorForm = res.data.data[0];
-      }).catch((error) => {
-        this.$message.success('错误！');
       });
     }
   }
@@ -185,77 +204,54 @@ export default {
 </script>
 
 <style scoped>
-.container {
+.doc-info-page {
+  padding: 4px;
+}
+
+.doc-info-card {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 28px 32px 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.section {
+  margin-bottom: 8px;
+}
+
+.section-title {
   display: flex;
-  justify-content: space-between;
-  padding: 20px;
-  background-color:#ffffff;
-  border-radius: 8px;
-}
-
-.left-view, .right-view {
-  flex: 1;
-  padding: 20px;
-  background-color: transparent; /* 使背景色透明，统一背景 */
-  border: none; /* 去掉边框 */
-  border-radius: 8px;
-  box-shadow: none; /* 去掉阴影 */
-  display: flex;
-  flex-direction: column;
-}
-
-
-.form-item, .el-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-}
-
-.el-label {
-  margin-bottom: 5px;
-  color: #333;
-  font-weight: 500;
-}
-
-.el-input__inner, .el-textarea__inner {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  align-items: center;
   font-size: 16px;
-  transition: all 0.3s;
+  font-weight: 600;
+  color: #303133;
+  margin: 8px 0 18px;
 }
 
-.save-btn, .submit-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 20px;
-  background: linear-gradient(135deg, #55aaff, #55ffff);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.section-title .bar {
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: #409eff;
+  margin-right: 8px;
 }
 
-.save-btn:hover, .submit-button:hover {
-  background: #66b1ff;
-}
-
-.form-title {
-  text-align: center;
-  font-size: 24px;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-.type-tip {
+.field-tip {
   font-size: 12px;
-  color: #666;
-  margin-bottom: 5px;
+  color: #909399;
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+.save-btn {
+  width: 100%;
+  height: 42px;
+  font-size: 15px;
+  border-radius: 8px;
+  margin-top: 8px;
 }
 </style>

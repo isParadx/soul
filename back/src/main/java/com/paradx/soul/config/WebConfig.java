@@ -36,6 +36,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/user/login",
                         "/user/regist",
                         "/doctor/getAllDocter",
+                        "/doctor/addDoctorInfo",  // 注册流程中完善医生信息（此时用户尚未登录）
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/doc.html",
@@ -50,6 +51,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/user/login",
                         "/user/regist",
                         "/doctor/getAllDocter",
+                        "/doctor/addDoctorInfo",  // 注册流程中完善医生信息（此时用户尚未登录）
                         "/user/getUserInfo",  // 所有登录用户可访问
                         "/user/changeUserInfo",
                         "/user/changePassword",
