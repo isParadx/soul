@@ -43,6 +43,8 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             if (userId != null) {
                 // 将用户ID存入request属性，供后续使用
                 request.setAttribute("userId", userId);
+                // 将解析出的token存入request属性，供Controller在未显式传token头时回退取值
+                request.setAttribute("token", token);
                 // 将用户角色存入request属性，供权限拦截器使用
                 Integer role = jwtHelper.getUserRole(token);
                 if (role != null) {

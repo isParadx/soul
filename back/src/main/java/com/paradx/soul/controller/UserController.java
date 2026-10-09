@@ -10,6 +10,7 @@ import com.paradx.soul.utils.Result;
 import com.paradx.soul.utils.ResultCodeEnum;
 import com.paradx.soul.utils.ValidationUtil;
 import com.paradx.soul.utils.XssUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -110,10 +111,12 @@ public class UserController {
 
     /**
      * 获取登录用户信息接口
+     * token支持三种来源：token请求头、Authorization: Bearer、请求参数
      */
     @GetMapping("getUserInfo")
-    public Result userInfo(@RequestHeader String token) {
-        return userService.getUserInfo(token);
+    public Result userInfo(HttpServletRequest request,
+                           @RequestHeader(value = "token", required = false) String token) {
+        return userService.getUserInfo(resolveToken(request, token));
     }
 
     /**
@@ -139,7 +142,10 @@ public class UserController {
      * 修改用户密码接口
      */
     @PostMapping("changePassword")
-    public Result changePassword(@RequestHeader String token, @RequestBody PasswordChangeRequest request) {
+    public Result changePassword(HttpServletRequest httpRequest,
+                                 @RequestHeader(value = "token", required = false) String token,
+                                 @RequestBody PasswordChangeRequest request) {
+        token = resolveToken(httpRequest, token);
         // 参数校验
         if (request.getOldPassword() == null || request.getNewPassword() == null) {
             return Result.build(null, 400, "旧密码和新密码不能为空");
@@ -181,12 +187,32 @@ public class UserController {
      * 支持JPG/PNG/GIF/WebP格式，最大5MB
      */
     @PostMapping("uploadAvatar")
-    public Result uploadAvatar(@RequestHeader String token,
+    public Result uploadAvatar(HttpServletRequest httpRequest,
+                               @RequestHeader(value = "token", required = false) String token,
                                @RequestParam("file") MultipartFile file) {
         // 校验文件是否为空
         if (file == null || file.isEmpty()) {
             return Result.build(null, 400, "请选择要上传的头像文件");
         }
+        token = resolveToken(httpRequest, token);
         return userService.uploadAvatar(token, file);
+    }
+
+    /**
+     * 统一解析Token：优先请求头，其次Authorization: Bearer，最后拦截器写入的请求属性
+     * @param request HTTP请求
+     * @param token 已从token头获取的值（可能为空）
+     * @return 解析出的Token，解析失败返回原值
+     */
+    private String resolveToken(HttpServletRequest request, String token) {
+        if (token != null && !token.isEmpty()) {
+            return token;
+        }
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        Object attr = request.getAttribute("token");
+        return attr != null ? attr.toString() : token;
     }
 }
