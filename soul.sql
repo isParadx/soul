@@ -66,7 +66,7 @@ CREATE TABLE `consultation` (
 
 LOCK TABLES `consultation` WRITE;
 /*!40000 ALTER TABLE `consultation` DISABLE KEYS */;
-INSERT INTO `consultation` VALUES (6,2233320103,101,'2024-11.27/13:00-14:00','已结束','您的状况良好'),(7,2233320104,102,'2024-11.27/13:00-14:00','已结束','您的状况良好'),(13,2233320103,102,'2024-12.06/9:00-10:00','未开始',NULL);
+INSERT INTO `consultation` VALUES (6,2024000001,200001,'2024-11.27/13:00-14:00','已结束','您的状况良好'),(7,2233320104,200002,'2024-11.27/13:00-14:00','已结束','您的状况良好'),(13,2024000001,200002,'2024-12.06/9:00-10:00','未开始',NULL);
 /*!40000 ALTER TABLE `consultation` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -94,7 +94,7 @@ CREATE TABLE `doctor` (
 
 LOCK TABLES `doctor` WRITE;
 /*!40000 ALTER TABLE `doctor` DISABLE KEYS */;
-INSERT INTO `doctor` (`id`,`name`,`intruduce`,`type`,`say`) VALUES (101,'李楠','我是一名资深的心理医生','恋爱心理,自我成长','我是你的树洞'),(102,'江心','我有着丰富的心理医生资历','情绪管理,焦虑抑郁','我是一个倾听者'),(103,'汪成','我是一名资深的心理医生','人际关系,学业压力','我是您的最佳树洞'),(104,'张薇','大家好，我是张薇','情绪管理,亲子关系','我是您的心灵树洞');
+INSERT INTO `doctor` (`id`,`name`,`intruduce`,`type`,`say`) VALUES (200001,'李楠','我是一名资深的心理医生','恋爱心理,自我成长','我是你的树洞'),(200002,'江心','我有着丰富的心理医生资历','情绪管理,焦虑抑郁','我是一个倾听者'),(200003,'汪成','我是一名资深的心理医生','人际关系,学业压力','我是您的最佳树洞'),(200004,'张薇','大家好，我是张薇','情绪管理,亲子关系','我是您的心灵树洞');
 /*!40000 ALTER TABLE `doctor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -128,7 +128,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` (`userid`,`nickname`,`sex`,`password`,`phone`,`email`,`img`,`role`) VALUES (101,'李楠',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','12213238324','231321@qq.com',NULL,1),(102,'江心',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','12132323234','2132132@qq.com',NULL,1),(103,'汪成',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','14329374756',NULL,NULL,1),(104,'张薇',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','12323343244',NULL,NULL,1),(111111,'admin',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','15637242634','123@qq.com',NULL,2),(2233320103,'paradx',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','15867253472','12312321@qq.com',NULL,0);
+INSERT INTO `user` (`userid`,`nickname`,`sex`,`password`,`phone`,`email`,`img`,`role`) VALUES (200001,'李楠',1,'$2a$10$YuSywZscv4ha4cvxfzNWPuPSy7BZ/vWkHMu5J/eFxqPO.2g/8jQn.','13213238324','231321@qq.com',NULL,1),(200002,'江心',1,'$2a$10$YuSywZscv4ha4cvxfzNWPuPSy7BZ/vWkHMu5J/eFxqPO.2g/8jQn.','13132323234','2132132@qq.com',NULL,1),(200003,'汪成',0,'$2a$10$YuSywZscv4ha4cvxfzNWPuPSy7BZ/vWkHMu5J/eFxqPO.2g/8jQn.','14329374756',NULL,NULL,1),(200004,'张薇',1,'$2a$10$YuSywZscv4ha4cvxfzNWPuPSy7BZ/vWkHMu5J/eFxqPO.2g/8jQn.','13323343244',NULL,NULL,1),(111111,'admin',0,'$2a$10$glwOM2r7oFyRw3DQXEG0puWDU7vjqOpUtxe2wx6GQ4nbYJ5uOTsQm','15637242634','123@qq.com',NULL,2),(2024000001,'paradx',0,'$2a$10$szL5vG7myAzhibBij5i/6Oqhs8qajaU9XHCcf.V9vDzf2pJIM8kTm','15867253472','12312321@qq.com',NULL,0);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
