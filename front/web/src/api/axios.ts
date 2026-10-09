@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// 后端服务地址（与下方baseURL保持一致）
+const SERVER_BASE_URL = 'http://localhost:8080';
+
 // 创建自定义的 axios 实例
 const customAxios = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: SERVER_BASE_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
@@ -63,5 +66,12 @@ customAxios.interceptors.response.use(
   }
 );
 
+// 将后端返回的头像相对路径解析为可直接访问的完整地址
+export function resolveAvatarUrl(img?: string | null): string {
+  if (!img) return '';
+  if (img.startsWith('http://') || img.startsWith('https://')) return img;
+  return img.startsWith('/') ? SERVER_BASE_URL + img : SERVER_BASE_URL + '/' + img;
+}
+
 // 将 customAxios 作为命名导出
-export { customAxios };
+export { customAxios, SERVER_BASE_URL };

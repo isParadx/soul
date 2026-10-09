@@ -85,11 +85,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     /**
      * 静态资源映射（用于头像等上传文件）
+     * 上传文件实际存储于 uploads/avatars/，访问URL为 /uploads/avatars/xxx.jpg
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/");
+                .addResourceLocations("file:uploads/avatars/");
     }
 
     /**

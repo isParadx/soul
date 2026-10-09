@@ -9,15 +9,28 @@
       <div class="header-user">
         <span class="user-name">{{ username || '管理员' }}</span>
         <el-dropdown trigger="click" @command="handleCommand">
-          <el-avatar :size="32" class="user-avatar">{{ username ? username.charAt(0) : '管' }}</el-avatar>
+          <el-avatar :size="32" :src="avatarUrl" class="user-avatar">
+            {{ username ? username.charAt(0) : '管' }}
+          </el-avatar>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="logout">
+              <el-dropdown-item command="avatar">
+                <el-icon><Camera /></el-icon>更换头像
+              </el-dropdown-item>
+              <el-dropdown-item command="logout" divided>
                 <el-icon><SwitchButton /></el-icon>退出登录
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+        <!-- 隐藏的文件选择器 -->
+        <input
+          ref="avatarInput"
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          style="display: none"
+          @change="handleAvatarChange"
+        />
       </div>
     </el-header>
 
@@ -73,7 +86,8 @@
 </template>
 
 <script>
-import { User, Calendar, SwitchButton, ChatDotRound } from '@element-plus/icons-vue'
+import { User, Calendar, SwitchButton, ChatDotRound, Camera } from '@element-plus/icons-vue'
+import { resolveAvatarUrl } from '../../api/axios'
 
 export default {
   name: 'AdminLayout',
@@ -81,11 +95,13 @@ export default {
     User,
     Calendar,
     SwitchButton,
-    ChatDotRound
+    ChatDotRound,
+    Camera
   },
   data() {
     return {
       username: '',
+      avatarUrl: '',
       activeMenu: '/master/userinfo'
     }
   },
@@ -99,6 +115,8 @@ export default {
       }
     }
     this.activeMenu = this.$route.path;
+    // 拉取当前用户信息（含头像与昵称）
+    this.loadUserInfo();
   },
   watch: {
     '$route.path'(path) {
@@ -106,13 +124,70 @@ export default {
     }
   },
   methods: {
+    // 加载当前登录用户信息
+    loadUserInfo() {
+      this.$axios.get('/user/getUserInfo').then(res => {
+        const user = res.data?.data?.loginUser;
+        if (!user) return;
+        if (user.nickname) {
+          this.username = user.nickname;
+          // 同步到会话缓存，供其他页面使用
+          const cached = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
+          sessionStorage.setItem('userInfo', JSON.stringify({ ...cached, nickname: user.nickname, img: user.img }));
+        }
+        this.avatarUrl = resolveAvatarUrl(user.img);
+      }).catch(() => { /* 静默失败，不影响页面使用 */ });
+    },
+    // 点击"更换头像"后触发文件选择
     handleCommand(cmd) {
       if (cmd === 'logout') {
         this.$success('已退出登录');
         localStorage.removeItem('token');
         sessionStorage.clear();
         this.$router.push('/');
+        return;
       }
+      if (cmd === 'avatar') {
+        this.$refs.avatarInput.value = '';
+        this.$refs.avatarInput.click();
+      }
+    },
+    // 选择文件后校验并上传
+    handleAvatarChange(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      // 类型白名单校验
+      const allowTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowTypes.includes(file.type)) {
+        this.$error('仅支持 JPG / PNG / GIF / WebP 格式的图片');
+        return;
+      }
+      // 大小限制 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        this.$error('图片大小不能超过 5MB');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      this.uploading = true;
+      this.$axios.post('/user/uploadAvatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }).then(res => {
+        const imgUrl = res.data?.data?.imgUrl;
+        this.avatarUrl = resolveAvatarUrl(imgUrl) + '?t=' + Date.now();
+        this.$success('头像更换成功');
+        // 同步会话缓存
+        const cached = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
+        sessionStorage.setItem('userInfo', JSON.stringify({ ...cached, img: imgUrl }));
+      }).catch(error => {
+        const msg = error.response?.data?.message || error.message || '头像上传失败';
+        this.$error(msg);
+      }).finally(() => {
+        this.uploading = false;
+      });
     }
   }
 }
