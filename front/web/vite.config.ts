@@ -11,6 +11,11 @@ export default defineConfig({
     vueJsx(),
     vueDevTools(),
   ],
+  server: {
+    host: true,
+    port: 5173,      // web端固定端口（后端CORS白名单基于此端口）
+    strictPort: true // 端口被占用时直接报错，而不是静默漂移到5174+
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
