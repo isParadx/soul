@@ -1,20 +1,52 @@
 <template>
-  <view class="uni-padding-wrap">
-    <view class="uni-title">hi~,朋友,很高兴认识你！</view>
-    <input class="uni-input" type="number" v-model="userid" placeholder="请输入账号" />
-    <input class="uni-input" type="text" v-model="nickname" placeholder="请输入昵称" />
-    <input class="uni-input" type="password" v-model="password" placeholder="请输入密码" />
-    <input class="uni-input" type="password" v-model="confirmPassword" placeholder="请重复密码" />
-    <picker mode="selector" :range="genders" :value="genderIndex" @change="onGenderChange">
-      <view class="uni-input">{{ genders[genderIndex] }}</view>
-    </picker>
-	<picker mode="selector" :range="roles" :value="roleIndex" @change="onRoleChange">
-	  <view class="uni-input">{{ roles[roleIndex] }}</view>
-	</picker>
-    <input class="uni-input" type="number" v-model="phone" placeholder="请输入手机号" />
-    <input class="uni-input" type="email" v-model="email" placeholder="请输入邮箱(非必填)" />
-    <view style="color: red" @click="gotologin">已有账号？去登录</view>
-    <button class="uni-button" @click="register">注册</button>
+  <view class="page">
+    <view class="header">
+      <view class="logo">🌿</view>
+      <view class="title">学生注册</view>
+      <view class="subtitle">账号由系统自动分配，注册后即可登录</view>
+    </view>
+
+    <view class="card">
+      <view class="field">
+        <text class="label">昵称</text>
+        <input class="input" type="text" v-model="nickname" placeholder="请输入昵称（2-20位）" />
+      </view>
+
+      <view class="field">
+        <text class="label">手机号 <text class="required">*</text></text>
+        <input class="input" type="number" maxlength="11" v-model="phone" placeholder="请输入11位手机号" />
+      </view>
+
+      <view class="field">
+        <text class="label">邮箱（选填）</text>
+        <input class="input" type="text" v-model="email" placeholder="可用于登录" />
+      </view>
+
+      <view class="field">
+        <text class="label">性别</text>
+        <picker mode="selector" :range="genders" :value="genderIndex" @change="onGenderChange">
+          <view class="input picker-value">{{ genders[genderIndex] }}</view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="label">密码 <text class="required">*</text></text>
+        <input class="input" type="password" v-model="password" placeholder="6-20位，需包含字母和数字" />
+      </view>
+
+      <view class="field">
+        <text class="label">确认密码 <text class="required">*</text></text>
+        <input class="input" type="password" v-model="confirmPassword" placeholder="请再次输入密码" />
+      </view>
+
+      <button class="btn-primary" :loading="loading" @click="register">{{ loading ? '注册中...' : '注 册' }}</button>
+
+      <view class="foot">
+        <text class="link" @click="gotologin">已有账号？去登录</text>
+      </view>
+    </view>
+
+    <view class="tip">当前注册角色：学生（医生请使用电脑端注册）</view>
   </view>
 </template>
 
@@ -22,116 +54,176 @@
 export default {
   data() {
     return {
-      userid: '',
       nickname: '',
-      password: '',
-      confirmPassword: '',
       phone: '',
       email: '',
-      roles: ['学生'],
-      genders: ['男', '女'], // 新增性别选项
-      roleIndex: 0,
-      genderIndex: 0, // 新增性别选择的索引
+      password: '',
+      confirmPassword: '',
+      genders: ['男', '女'],
+      genderIndex: 0,
+      loading: false
     };
   },
   methods: {
     onGenderChange(e) {
       this.genderIndex = Number(e.detail.value);
     },
-    onRoleChange(e) {
-      this.roleIndex = Number(e.detail.value);
+    validate() {
+      if (!this.nickname.trim()) return '请输入昵称';
+      if (!/^[\u4e00-\u9fa5a-zA-Z0-9_]{2,20}$/.test(this.nickname.trim())) return '昵称为2-20位，支持中英文、数字、下划线';
+      if (!/^1[3-9]\d{9}$/.test(this.phone)) return '手机号格式不正确';
+      if (this.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.email)) return '邮箱格式不正确';
+      if (this.password.length < 6 || this.password.length > 20) return '密码长度为6-20位';
+      if (!/[A-Za-z]/.test(this.password) || !/\d/.test(this.password)) return '密码需同时包含字母和数字';
+      if (this.password !== this.confirmPassword) return '两次输入的密码不一致';
+      return null;
     },
     register() {
-      if (this.userid=='' || this.nickname=='' || this.password=='' || this.confirmPassword=='' || this.phone=='') {
-        uni.showToast({
-          title: '账号、昵称、密码、重复密码和手机号不能为空',
-          icon: 'none'
-        });
+      const err = this.validate();
+      if (err) {
+        uni.showToast({ title: err, icon: 'none' });
         return;
       }
-      if (this.password !== this.confirmPassword) {
-        uni.showToast({
-          title: '两次输入的密码不一致',
-          icon: 'none'
-        });
-        return;
-      }
+      this.loading = true;
       uni.request({
         url: this.$u.baseURL + '/user/regist',
         method: 'POST',
+        header: { 'X-Device-Type': 'app' },
         data: {
-          userid: this.userid,
+          nickname: this.nickname.trim(),
           password: this.password,
-          nickname: this.nickname,
-          role: this.roleIndex,
-          sex: this.genderIndex, 
+          role: 0,
+          sex: this.genderIndex,
           phone: this.phone,
-          email: this.email || ''
+          email: this.email || null
         },
         success: (res) => {
           if (res.data.code !== 200) {
-            uni.showToast({
-              title: res.data.message || '注册失败，请重试',
-              icon: 'none'
-            });
-          } else {
-			uni.showToast({
-			   title: '注册成功！跳转至登录界面',
-			   icon: 'success',
-				duration: 3000
-			});
-			// 登录成功后的其他操作，比如跳转到主页
-			setTimeout(() => {
-			        this.gotologin()
-			      },3000);
+            uni.showToast({ title: res.data.message || '注册失败，请重试', icon: 'none' });
+            return;
           }
-        },
-        fail: (err) => {
-          uni.showToast({
-            title: '请求失败，请重试',
-            icon: 'none'
+          const account = res.data.data && res.data.data.userid;
+          uni.setStorageSync('assignedAccount', String(account || ''));
+          uni.showModal({
+            title: '注册成功',
+            content: '系统已为您分配账号：' + account + '\n请牢记，用于登录',
+            showCancel: false,
+            confirmText: '去登录',
+            success: () => {
+              uni.redirectTo({ url: '/pages/loAre/login/login' });
+            }
           });
+        },
+        fail: () => {
+          uni.showToast({ title: '请求失败，请检查网络', icon: 'none' });
+        },
+        complete: () => {
+          this.loading = false;
         }
       });
     },
     gotologin() {
-      uni.navigateTo({
-        url: '/pages/loAre/login/login'
-      });
+      uni.redirectTo({ url: '/pages/loAre/login/login' });
     }
   }
 };
 </script>
 
-
 <style>
-.uni-padding-wrap {
-  padding: 20px;
+.page {
+  min-height: 100vh;
+  padding: 40px 24px;
+  box-sizing: border-box;
+  background-color: #f5f7fa;
 }
 
-.uni-title {
+.header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.logo {
+  font-size: 52px;
+}
+
+.title {
   font-size: 24px;
-  color: #333;
-  margin-bottom: 20px;
+  font-weight: 600;
+  color: #33413f;
+  margin-top: 8px;
 }
 
-.uni-input {
+.subtitle {
+  font-size: 13px;
+  color: #909399;
+  margin-top: 6px;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 24px 20px;
+  box-shadow: 0 4px 16px rgba(91, 140, 138, 0.08);
+}
+
+.field {
+  margin-bottom: 18px;
+}
+
+.label {
   display: block;
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  font-size: 13px;
+  color: #5a6a68;
+  margin-bottom: 8px;
 }
 
-.uni-button {
-  margin-top: 3%;
+.required {
+  color: #e45656;
+}
+
+.input {
   width: 100%;
-  padding: 10px;
-  background-color: #007aff;
-  color: white;
+  height: 46px;
+  line-height: 46px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background-color: #f7f9f9;
+  border: 1px solid #e4ebea;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #33413f;
+}
+
+.picker-value {
+  color: #33413f;
+}
+
+.btn-primary {
+  width: 100%;
+  height: 46px;
+  line-height: 46px;
+  margin-top: 8px;
+  background-color: #5b8c8a;
+  color: #ffffff;
+  font-size: 16px;
+  border-radius: 23px;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
+}
+
+.foot {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.link {
+  font-size: 14px;
+  color: #5b8c8a;
+}
+
+.tip {
+  text-align: center;
+  font-size: 12px;
+  color: #a0adab;
+  margin-top: 20px;
 }
 </style>

@@ -205,12 +205,14 @@ export default {
 }
 
 .list-item-tag {
-  padding: 4px 8px;
+  padding: 4px 10px;
   margin-right: 8px;
   margin-bottom: 8px;
-  background-color: #f0f0f0;
+  background-color: #EAF3F2;
+  border: 1px solid #D8E6E4;
+  color: #4A7A78;
   border-radius: 15px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .text {

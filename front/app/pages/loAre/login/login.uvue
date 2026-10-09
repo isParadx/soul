@@ -1,10 +1,30 @@
 <template>
-  <view class="uni-padding-wrap">
-    <view class="uni-title">欢迎来到心灵之旅</view>
-    <input class="uni-input" type="text" v-model="username" placeholder="请输入用户名" />
-    <input class="uni-input" type="password" v-model="password" placeholder="请输入密码" />
-	<text style="color: green" @click="gotoRegist">没有账户？去注册</text>
-	<button class="uni-button" @click="login">登录</button>
+  <view class="page">
+    <view class="header">
+      <view class="logo">🌿</view>
+      <view class="title">心灵驿站</view>
+      <view class="subtitle">学生心理咨询预约系统</view>
+    </view>
+
+    <view class="card">
+      <view class="field">
+        <text class="label">账号 / 手机号 / 邮箱</text>
+        <input class="input" type="text" v-model="username" placeholder="请输入账号、手机号或邮箱" />
+      </view>
+
+      <view class="field">
+        <text class="label">密码</text>
+        <input class="input" type="password" v-model="password" placeholder="请输入密码" />
+      </view>
+
+      <button class="btn-primary" :loading="loading" @click="login">{{ loading ? '登录中...' : '登 录' }}</button>
+
+      <view class="foot">
+        <text class="link" @click="gotoRegist">没有账号？去注册</text>
+      </view>
+    </view>
+
+    <view class="tip">学生请使用手机端登录，医生 / 管理员请使用电脑端</view>
   </view>
 </template>
 
@@ -14,112 +34,168 @@ export default {
     return {
       username: '',
       password: '',
-	  trynum:0
+      loading: false
     };
   },
+  onLoad() {
+    // 注册完成后自动带入系统分配的账号
+    const assigned = uni.getStorageSync('assignedAccount');
+    if (assigned) {
+      this.username = String(assigned);
+      uni.removeStorageSync('assignedAccount');
+      setTimeout(() => {
+        uni.showToast({ title: '账号已自动填入，请输入密码', icon: 'none' });
+      }, 300);
+    }
+  },
   methods: {
-	//点击登录至首页
-    login() {
-		if (this.password === "" || this.username === "") {
-		    uni.showToast({
-		        title: '账号密码不能为空',
-		        icon: 'none'
-		    });
-		} else {
-		    uni.request({
-		        url: this.$u.baseURL+'/user/login',
-		        method: 'POST',
-		        header: {
-		            "X-Device-Type": "app"
-		        },
-		        data: {
-		            "userid":this.username,
-		            "password":this.password
-		        },
-		        success: (res) => {
-					console.log(res)
-		            if (res.data.code !== 200) {
-		                uni.showToast({
-		                    title: res.data.message || '账号或密码不正确',
-		                    icon:'none'
-		                });
-		            } else {
-						if(res.data.data.role!=='学生'){
-							uni.showToast({
-							    title:'对不起,暂不支持您在手机端操作,请移步至电脑端', 
-							    icon:'none' 
-							});
-						}else{
-							uni.setStorage({
-								key: 'token',
-								data: res.data.data.token
-							});
-							uni.showToast({
-							    title:'登录成功！正在为您跳转', 
-							    icon:'success' ,
-								duration: 3000
-							});
-							// 登录成功后的其他操作，比如跳转到主页
-							setTimeout(() => {
-							        uni.switchTab({
-							          url: '/pages/tabbar/Home/Home'
-							        });
-							      }, 3500);
-						}
-		              
-		            }
-		        },
-		        fail: (err) => {
-		            uni.showToast({
-		                title: '请求失败，请重试', // 提示的内容
-		                icon: 'none' // 没有图标
-		            });
-					
-		        }
-		    });
-		}
+    friendlyMessage(code, fallback) {
+      const map = {
+        usernameError: '账号不存在，请检查账号 / 手机号 / 邮箱',
+        passwordError: '密码错误，请重新输入',
+        notLogin: '登录状态已过期，请重新登录'
+      };
+      return map[code] || fallback || '登录失败，请重试';
     },
-	//跳转至注册界面
-	gotoRegist(){
-		uni.navigateTo({
-			url:'/pages/loAre/regist/regist'
-		})
-	}
-	
-	
+    login() {
+      if (!this.username || !this.password) {
+        uni.showToast({ title: '账号和密码不能为空', icon: 'none' });
+        return;
+      }
+      this.loading = true;
+      uni.request({
+        url: this.$u.baseURL + '/user/login',
+        method: 'POST',
+        header: { 'X-Device-Type': 'app' },
+        data: {
+          account: this.username.trim(),
+          password: this.password
+        },
+        success: (res) => {
+          if (res.data.code !== 200) {
+            uni.showToast({
+              title: this.friendlyMessage(res.data.message, res.data.message),
+              icon: 'none'
+            });
+            return;
+          }
+          const data = res.data.data;
+          if (data.role !== '学生') {
+            uni.showToast({
+              title: '暂不支持该角色在手机端登录，请使用电脑端',
+              icon: 'none'
+            });
+            return;
+          }
+          uni.setStorageSync('token', data.token);
+          uni.setStorageSync('userId', data.userId);
+          uni.showToast({ title: '登录成功', icon: 'success', duration: 1200 });
+          setTimeout(() => {
+            uni.switchTab({ url: '/pages/tabbar/Home/Home' });
+          }, 1200);
+        },
+        fail: () => {
+          uni.showToast({ title: '请求失败，请检查网络', icon: 'none' });
+        },
+        complete: () => {
+          this.loading = false;
+        }
+      });
+    },
+    gotoRegist() {
+      uni.navigateTo({ url: '/pages/loAre/regist/regist' });
+    }
   }
 };
 </script>
 
 <style>
-.uni-padding-wrap {
-  padding: 20px;
+.page {
+  min-height: 100vh;
+  padding: 60px 24px 40px;
+  box-sizing: border-box;
+  background-color: #f5f7fa;
 }
 
-.uni-title {
-  font-size: 24px;
-  color: #333;
+.header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.logo {
+  font-size: 56px;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 600;
+  color: #33413f;
+  margin-top: 10px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #909399;
+  margin-top: 6px;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 26px 20px;
+  box-shadow: 0 4px 16px rgba(91, 140, 138, 0.08);
+}
+
+.field {
   margin-bottom: 20px;
 }
 
-.uni-input {
+.label {
   display: block;
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  font-size: 13px;
+  color: #5a6a68;
+  margin-bottom: 8px;
 }
 
-.uni-button {
-  margin-top: 3%;
+.input {
   width: 100%;
-  padding: 10px;
-  background-color: #007aff;
-  color: white;
+  height: 46px;
+  line-height: 46px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background-color: #f7f9f9;
+  border: 1px solid #e4ebea;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #33413f;
+}
+
+.btn-primary {
+  width: 100%;
+  height: 46px;
+  line-height: 46px;
+  margin-top: 8px;
+  background-color: #5b8c8a;
+  color: #ffffff;
+  font-size: 16px;
+  border-radius: 23px;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
+}
+
+.foot {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.link {
+  font-size: 14px;
+  color: #5b8c8a;
+}
+
+.tip {
+  text-align: center;
+  font-size: 12px;
+  color: #a0adab;
+  margin-top: 22px;
 }
 </style>
-

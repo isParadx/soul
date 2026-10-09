@@ -364,11 +364,14 @@ data() {
 }
 
 .tag {
-  padding: 5px 10px;
-  background-color: #f0f0f0;
+  padding: 5px 12px;
+  background-color: #EAF3F2;
+  border: 1px solid #D8E6E4;
   border-radius: 15px;
-  color: #333;
+  color: #4A7A78;
   font-size: 12px;
+  margin-right: 8px;
+  margin-bottom: 8px;
 }
 
 .consultation-notice-container {

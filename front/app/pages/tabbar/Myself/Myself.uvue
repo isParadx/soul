@@ -1,26 +1,31 @@
 <template>
-  <view class="container">
-    <!-- 头像和昵称区域 -->
-    <view class="profile">
-      <view class="avatar">
-        <image class="avatar-img" src="/static/user.png" />
+  <view class="page">
+    <!-- 顶部用户卡片 -->
+    <view class="hero">
+      <view class="hero-left">
+        <view class="avatar">
+          <image class="avatar-img" :src="avatarSrc" />
+        </view>
+        <view class="hero-info">
+          <text class="hero-name">{{ nickname }}</text>
+          <text class="hero-account">账号：{{ userid || '—' }}</text>
+        </view>
       </view>
-      <text class="avatar-nickname">{{nickname}}</text>
+      <text class="hero-arrow" @click="goProfile">›</text>
     </view>
-  
-    <!-- 菜单区域 -->
+
+    <!-- 功能菜单 -->
     <view class="menu">
       <view v-for="(item, index) in menuItems" :key="index" class="menu-item" @click="navigateTo(item.url)">
         <view class="menu-item-left">
-          <view :class="item.icon"></view>
+          <text class="menu-icon">{{ item.icon }}</text>
           <text class="menu-text">{{ item.text }}</text>
         </view>
-        <text class="arrow">></text>
+        <text class="arrow">›</text>
       </view>
     </view>
-    
-    <!-- 退出按钮 -->
-    <button class="logout-button" @click="logout">退出</button>
+
+    <button class="logout-button" @click="logout">退出登录</button>
   </view>
 </template>
 
@@ -28,128 +33,190 @@
 export default {
   data() {
     return {
-      nickname: 'hi!欢迎使用',
+      token: '',
+      nickname: '未登录',
+      userid: '',
+      img: '',
       menuItems: [
-        { icon: 'icon-info', text: '个人信息', url: '/pages/tabbar/Myself/profile/profile' },
-        { icon: 'icon-lock', text: '密码修改', url: '/pages/tabbar/Myself/password/password' },
-        { icon: 'icon-advice;', text: '意见反馈', url: '/pages/tabbar/Myself/advice/advice' }
+        { icon: '👤', text: '个人信息', url: '/pages/tabbar/Myself/profile/profile' },
+        { icon: '🔒', text: '密码修改', url: '/pages/tabbar/Myself/password/password' },
+        { icon: '💬', text: '意见反馈', url: '/pages/tabbar/Myself/advice/advice' }
       ]
     };
   },
-  onLoad() {
-  	uni.getStorage({
-  			  key:'token',
-  			  success:(res)=>{
-  				 this.token=res.data;
-  			}
-  	}) 
+  computed: {
+    avatarSrc() {
+      if (this.img) {
+        if (/^https?:\/\//.test(this.img)) return this.img;
+        return this.$u.baseURL + this.img;
+      }
+      return '/static/user.png';
+    }
   },
-  methods: { 
+  onShow() {
+    this.token = uni.getStorageSync('token') || '';
+    if (this.token) {
+      this.getUserInfo();
+    } else {
+      this.nickname = '未登录';
+      this.userid = '';
+    }
+  },
+  methods: {
+    getUserInfo() {
+      uni.request({
+        url: this.$u.baseURL + '/user/getUserInfo',
+        method: 'GET',
+        header: { token: this.token },
+        success: (res) => {
+          const loginUser = res.data && res.data.data && res.data.data.loginUser;
+          if (loginUser) {
+            this.nickname = loginUser.nickname || '未设置昵称';
+            this.userid = loginUser.userid || '';
+            this.img = loginUser.img || '';
+          }
+        }
+      });
+    },
+    goProfile() {
+      uni.navigateTo({ url: '/pages/tabbar/Myself/profile/profile' });
+    },
     navigateTo(url) {
-		uni.navigateTo({
-			url: url
-		});
+      uni.navigateTo({ url });
     },
     logout() {
-      uni.removeStorage({
-		  key:'token',
-		  success:function(){
-			  uni.clearStorage()
-			  uni.showToast({
-				  title:'退出成功，请重新登录',
-				  icon:'none',
-				  duration: 1000
-			  }),
-			  setTimeout(() => {
-			          uni.navigateTo({
-			            url: '/pages/loAre/login/login'
-			          });
-			        }, 1000);
-			  
-		  }
-	  })
+      uni.showModal({
+        title: '提示',
+        content: '确定要退出登录吗？',
+        success: (r) => {
+          if (!r.confirm) return;
+          uni.clearStorageSync();
+          uni.showToast({ title: '已退出登录', icon: 'none', duration: 1000 });
+          setTimeout(() => {
+            uni.reLaunch({ url: '/pages/loAre/login/login' });
+          }, 1000);
+        }
+      });
     }
   }
 };
 </script>
 
 <style>
-.container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #e6e6fa;
-  padding: 20px;
+.page {
+  min-height: 100vh;
+  padding: 16px 16px 32px;
+  box-sizing: border-box;
+  background-color: #f5f7fa;
 }
 
-.profile {
+/* 顶部用户卡片 */
+.hero {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+  border-radius: 16px;
+  padding: 22px 20px;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .avatar {
-	background-image: url('');
-  width: 80px;
-  height: 80px;
-  background-color: #ffffff;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  margin-right: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  background-color: #ffffff;
 }
+
 .avatar-img {
-	width: 80px;
-	height: 80px;
-	border-radius: 50%;
-}
-
-.avatar-nickname {
-  font-size: 20px;
-  color: #333;
-}
-
-.menu {
   width: 100%;
+  height: 100%;
+}
+
+.hero-info {
+  margin-left: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.hero-account {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+}
+
+.hero-arrow {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 22px;
+}
+
+/* 菜单 */
+.menu {
+  background-color: #ffffff;
+  border-radius: 14px;
+  margin-top: 16px;
+  padding: 0 16px;
+  box-shadow: 0 2px 12px rgba(91, 140, 138, 0.06);
 }
 
 .menu-item {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  margin-bottom: 10px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  min-height: 54px;
+  border-bottom: 1px solid #f0f3f3;
+}
+
+.menu-item:last-child {
+  border-bottom: none;
 }
 
 .menu-item-left {
   display: flex;
   flex-direction: row;
+  align-items: center;
+}
+
+.menu-icon {
+  font-size: 17px;
+  margin-right: 12px;
 }
 
 .menu-text {
-  margin-left: 15px;
-  font-size: 18px;
-  color: #007aff;
+  font-size: 15px;
+  color: #33413f;
 }
 
 .arrow {
-  font-size: 18px;
-  color: #666;
+  font-size: 20px;
+  color: #c0cbca;
 }
 
 .logout-button {
-  width: 200px;
-  padding: 10px;
-  margin-top: 20px;
-  background: linear-gradient(135deg, #3f51b5, #5c6bc0);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  font-size: 18px;
+  width: 100%;
+  height: 46px;
+  line-height: 46px;
+  margin-top: 28px;
+  background-color: #ffffff;
+  color: #e45656;
+  font-size: 16px;
+  border-radius: 23px;
+  border: 1px solid #f3d9d9;
 }
 </style>
