@@ -29,9 +29,12 @@ export default {
 		    uni.request({
 		        url: this.$u.baseURL+'/user/login',
 		        method: 'POST',
+		        header: {
+		            "X-Device-Type": "app"
+		        },
 		        data: {
-		            "userid":this.username, 
-		            "password":this.password 
+		            "userid":this.username,
+		            "password":this.password
 		        },
 		        success: (res) => {
 					console.log(res)

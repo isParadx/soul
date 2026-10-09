@@ -31,6 +31,10 @@ public final class DeviceUtil {
         PC("pc"),           // PC端（桌面浏览器）
         MOBILE("mobile");   // 移动端（手机/平板）
 
+        // 移动端别名胜识别码（如uni-app客户端使用"app"标识）
+        private static final java.util.Set<String> MOBILE_ALIASES =
+            java.util.Set.of("app", "android", "ios", "mobile");
+
         private final String code;
 
         DeviceType(String code) {
@@ -47,6 +51,10 @@ public final class DeviceUtil {
                 if (type.code.equalsIgnoreCase(code)) {
                     return type;
                 }
+            }
+            // 移动端别名识别（app/android/ios等）
+            if (MOBILE_ALIASES.contains(code.toLowerCase())) {
+                return MOBILE;
             }
             return PC;
         }

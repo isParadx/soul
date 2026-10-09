@@ -213,6 +213,9 @@ data() {
 		uni.request({
 			url: this.$u.baseURL+'/consult/checkOrder',
 			method: 'GET',
+			header:{
+				"token":this.token
+			},
 			data:{
 				"keyid":this.id
 			},
@@ -271,6 +274,9 @@ data() {
 			uni.request({
 				url: this.$u.baseURL+'/consult/setOrder',
 				method: 'POST',
+				header:{
+					"token":this.token
+				},
 				data:{
 					"docId":this.id,
 					"stuId":this.user.userid,

@@ -111,11 +111,14 @@ export default {
         const res = await uni.request({
           url: this.$u.baseURL + '/consult/checkOrder',
           method: 'GET',
+          header: {
+            "token": this.token
+          },
           data: {
               keywords: this.user.userid
             }
         });
-        this.orders = res.data.data;
+        this.orders = res.data.data || [];
         await this.updateOrderNames();
       } catch (err) {
         uni.showToast({

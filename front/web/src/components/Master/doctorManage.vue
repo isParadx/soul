@@ -59,10 +59,6 @@ export default {
   created() {
     this.getTableData();
   },
-   mounted() {
-    // 页面挂载后加载Coze SDK
-    this.loadCozeSDK();
-  },
   methods: {
     getTableData() {
       //确认是管理员账户

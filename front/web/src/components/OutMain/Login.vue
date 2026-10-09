@@ -40,6 +40,7 @@
 </template>
 
 <script>
+import { markRaw } from 'vue';
 import { User, Lock } from '@element-plus/icons-vue'
 
 export default {
@@ -50,6 +51,9 @@ export default {
   },
   data() {
     return {
+      // 图标组件需通过实例属性暴露，模板中 :prefix-icon 才能访问到
+      User: markRaw(User),
+      Lock: markRaw(Lock),
       loading: false,
       loginForm: {
         userid: '',
