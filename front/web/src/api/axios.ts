@@ -15,7 +15,8 @@ const customAxios = axios.create({
 
 // 请求拦截器
 customAxios.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
+  // 登录态统一存于 sessionStorage（Login.vue 写入），此处必须同源读取
+  const token = sessionStorage.getItem('token');
   if (token) {
     // 后端JwtAuthInterceptor读取"token"请求头（兼容Authorization）
     config.headers['token'] = token;
@@ -46,7 +47,7 @@ customAxios.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           console.error('未授权，请重新登录');
-          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           sessionStorage.clear();
           window.location.href = '/';
           break;
