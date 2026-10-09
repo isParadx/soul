@@ -50,14 +50,14 @@ DROP TABLE IF EXISTS `consultation`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `consultation` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` bigint NOT NULL COMMENT '订单号：yyyyMMdd+4位当日流水',
   `stu_id` bigint NOT NULL,
   `doc_id` bigint NOT NULL,
   `appointment_time` varchar(45) NOT NULL,
   `status` varchar(45) NOT NULL,
   `feedback` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`,`doc_id`,`stu_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -66,7 +66,7 @@ CREATE TABLE `consultation` (
 
 LOCK TABLES `consultation` WRITE;
 /*!40000 ALTER TABLE `consultation` DISABLE KEYS */;
-INSERT INTO `consultation` VALUES (6,2024000001,200001,'2024-11.27/13:00-14:00','已结束','您的状况良好'),(7,2233320104,200002,'2024-11.27/13:00-14:00','已结束','您的状况良好'),(13,2024000001,200002,'2024-12.06/9:00-10:00','未开始',NULL);
+INSERT INTO `consultation` VALUES (202411270001,2024000001,200001,'2024-11.27/13:00-14:00','已结束','您的状况良好'),(202411270002,2233320104,200002,'2024-11.27/13:00-14:00','已结束','您的状况良好'),(202412060001,2024000001,200002,'2024-12.06/9:00-10:00','未开始',NULL);
 /*!40000 ALTER TABLE `consultation` ENABLE KEYS */;
 UNLOCK TABLES;
 

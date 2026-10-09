@@ -11,7 +11,7 @@ public interface ConsultationService extends IService<Consultation> {
     Result getThisConsult(String keywords);
     Result setNewOrder(Consultation consultation);
 
-    Result delOrder(Integer id);
+    Result delOrder(Long id);
 
     Result changeInfo(Consultation keywords);
 }

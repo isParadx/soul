@@ -5,7 +5,7 @@
 <mapper namespace="com.paradx.soul.mapper.ConsultationMapper">
 
     <resultMap id="BaseResultMap" type="com.paradx.soul.pojo.Consultation">
-            <id property="id" column="id" jdbcType="INTEGER"/>
+            <id property="id" column="id" jdbcType="BIGINT"/>
             <id property="docId" column="doc_id" jdbcType="BIGINT"/>
             <id property="stuId" column="stu_id" jdbcType="BIGINT"/>
             <result property="appointmentTime" column="appointment_time" jdbcType="VARCHAR"/>
@@ -18,9 +18,19 @@
         appointment_time,status,feedback
     </sql>
     <insert id="insertNewOrder">
-        insert into consultation (stu_id,doc_id,appointment_time,status)
-        values (#{stuId}, #{docId}, #{appointmentTime},'未开始')
+        insert into consultation (id,stu_id,doc_id,appointment_time,status)
+        values (#{id}, #{stuId}, #{docId}, #{appointmentTime},'未开始')
     </insert>
+
+    <!-- 查询指定区间内最大的预约单号（订单号按 yyyyMMdd + 4位流水 分配） -->
+    <select id="selectMaxOrderIdInRange" resultType="java.lang.Long">
+        select max(id) from consultation where id between #{start} and #{end}
+    </select>
+
+    <!-- 删除与某用户相关的全部预约（学生预约 + 医生接诊） -->
+    <delete id="deleteByUser">
+        delete from consultation where stu_id = #{userId} or doc_id = #{userId}
+    </delete>
 
     <update id="changeInfo">
         update consultation
@@ -35,7 +45,6 @@
     <delete id="delConsult">
         delete  from consultation where id=#{id}
     </delete>
-
     <select id="getConsult" resultType="com.paradx.soul.pojo.Consultation">
         select * from consultation
         <if test="keywords != null and keywords != ''">

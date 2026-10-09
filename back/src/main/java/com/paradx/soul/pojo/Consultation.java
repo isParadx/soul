@@ -17,11 +17,11 @@ import lombok.Data;
 @Data
 public class Consultation implements Serializable {
     /**
-     * 
+     * 预约单号：由系统按日期规则分配（yyyyMMdd + 4位当日流水，共12位）
      */
-    @TableId(type = IdType.AUTO)
-    @Schema(description = "预约单号")
-    private Integer id;
+    @TableId(type = IdType.INPUT)
+    @Schema(description = "预约单号（yyyyMMdd+4位流水）")
+    private Long id;
     @Schema(description = "医生ID")
     private Long docId;
     @Schema(description = "学生ID")
@@ -41,7 +41,7 @@ public class Consultation implements Serializable {
     public Consultation() {
     }
 
-    public Consultation(Integer id, Long docId, Long stuId, String appointmentTime, String status, String feedback) {
+    public Consultation(Long id, Long docId, Long stuId, String appointmentTime, String status, String feedback) {
         this.id = id;
         this.docId = docId;
         this.stuId = stuId;
@@ -50,11 +50,11 @@ public class Consultation implements Serializable {
         this.feedback = feedback;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

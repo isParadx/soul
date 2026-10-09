@@ -315,6 +315,9 @@ GET /user/getAllUserInfo?keywords=para
 |------|------|------|------|
 | (Body) | Long | 是 | 目标用户ID |
 
+> 说明：删除用户时会**级联清理**该用户的全部关联数据——其作为学生提交的预约、
+> 其作为医生接诊的预约，以及医生账号对应的医生档案；管理员账户不可删除。
+
 **请求示例**：
 
 ```json
@@ -718,7 +721,7 @@ GET /consult/checkOrder?keywords=李
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| id | Integer | 预约单号（主键，自增） |
+| id | Long | 预约单号（主键，系统分配：yyyyMMdd+4位当日流水，如 202610090001） |
 | docId | Long | 医生ID |
 | stuId | Long | 学生ID |
 | appointmentTime | String | 预约时间 |

@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.paradx.soul.pojo.User;
 import com.paradx.soul.service.UserService;
+import com.paradx.soul.mapper.ConsultationMapper;
+import com.paradx.soul.mapper.DoctorMapper;
 import com.paradx.soul.mapper.UserMapper;
 import com.paradx.soul.utils.BCryptUtil;
 import com.paradx.soul.utils.DeviceUtil;
@@ -14,6 +16,7 @@ import com.paradx.soul.utils.ResultCodeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +38,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private JwtHelper jwtHelper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private ConsultationMapper consultationMapper;
+    @Autowired
+    private DoctorMapper doctorMapper;
 
     @Value("${file.upload.path:uploads/avatars/}")
     private String uploadPath;
@@ -265,10 +272,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 删除用户
+     * 删除用户（注销账户）
+     * 级联清理该用户的全部关联数据，避免残留脏数据：
+     * 1. 该用户相关的所有预约订单（作为学生预约的 + 作为医生接诊的）
+     * 2. 若为医生，同步删除其医生档案（否则首页会出现"无账号医生"）
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result delUser(Long id) {
+        if (id == null) {
+            return Result.build(null, 400, "用户ID不能为空");
+        }
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            return Result.build(null, 404, "用户不存在");
+        }
+        // 管理员账户受保护，不允许通过该接口注销
+        if (user.getRole() != null && user.getRole() == 2) {
+            return Result.build(null, 400, "管理员账户不可注销");
+        }
+        // 1) 级联删除该用户相关的所有订单
+        consultationMapper.deleteByUser(id);
+        // 2) 医生账号：同步删除医生档案
+        if (user.getRole() != null && user.getRole() == 1) {
+            doctorMapper.deldoc(id);
+        }
+        // 3) 删除用户本身
         userMapper.delUser(id);
         return Result.ok(null);
     }

@@ -137,15 +137,11 @@ export default {
       this.updatePagedTableData(); // 更新分页数据
     },
     deleteData(userid,role) {
-         if(role=="医生"){
-            this.deleteDoc(userid);
-            this.deleteUser(userid)
-            this.getTableData();
-          }else if(role=="管理员"){
+         if(role=="管理员"){
             this.$message.error('管理员账户不可注销');
-          }else{
+         }else{
+            // 学生/医生统一由后端级联处理：删除账号时一并清理其预约订单与医生档案
             this.deleteUser(userid);
-            this.getTableData();
           };
     },
     deleteDoc(id){
@@ -167,14 +163,17 @@ export default {
               headers: {
                 'Content-Type': 'application/json'
               }
-            }).then(() => {
-              this.$message.success('注销成功！');
+            }).then((res) => {
+              if(res.data.code == 200){
+                this.$message.success('注销成功，该用户相关预约已一并清除');
+              }else{
+                this.$message.error(res.data.msg || '删除失败');
+              }
+              this.getTableData();
               })
               .catch((error) => {
                 this.$message.error('删除失败');
               });
-
-            this.getTableData(); 
     },
 
     reSetPwd(id){//ResetPassword

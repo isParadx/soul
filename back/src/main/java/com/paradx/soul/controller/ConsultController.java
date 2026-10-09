@@ -74,7 +74,7 @@ public class ConsultController {
     @Operation(summary = "删除预约记录", description = "管理员删除一条预约咨询记录")
     public Result delOrder(
             @Parameter(description = "目标记录的单号")
-            @RequestBody Integer id) {
+            @RequestBody Long id) {
         if (id == null) {
             return Result.build(null, 400, "预约ID不能为空");
         }

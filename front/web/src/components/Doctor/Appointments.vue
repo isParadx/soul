@@ -13,7 +13,7 @@
         </template>
       </el-input>
       <el-table :data="pagedTableData" stripe style="width: 100%">
-        <el-table-column prop="id" label="序号" width="70" />
+        <el-table-column prop="id" label="订单号" width="150" />
         <el-table-column prop="stuId" label="学生账号" width="180" />
         <el-table-column prop="docId" label="医生账号" width="180" />
         <el-table-column prop="appointmentTime" label="预约时间" width="280" />
