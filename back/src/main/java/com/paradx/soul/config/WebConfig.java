@@ -35,8 +35,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/user/login",
                         "/user/regist",
+                        "/user/checkUnique",  // 注册页实时校验手机号/邮箱唯一性
                         "/doctor/getAllDocter",
                         "/doctor/addDoctorInfo",  // 注册流程中完善医生信息（此时用户尚未登录）
+                        "/tag/list",              // 系统默认标签字典（公开）
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/doc.html",
@@ -50,8 +52,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/user/login",
                         "/user/regist",
+                        "/user/checkUnique",
                         "/doctor/getAllDocter",
                         "/doctor/addDoctorInfo",  // 注册流程中完善医生信息（此时用户尚未登录）
+                        "/tag/list",
                         "/user/getUserInfo",  // 所有登录用户可访问
                         "/user/changeUserInfo",
                         "/user/changePassword",

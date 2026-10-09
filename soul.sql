@@ -81,8 +81,9 @@ CREATE TABLE `doctor` (
   `id` bigint NOT NULL,
   `name` varchar(45) NOT NULL,
   `intruduce` text NOT NULL,
-  `type` varchar(45) DEFAULT NULL,
+  `type` varchar(255) DEFAULT NULL COMMENT '擅长领域标签，逗号分隔',
   `say` text,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -93,7 +94,7 @@ CREATE TABLE `doctor` (
 
 LOCK TABLES `doctor` WRITE;
 /*!40000 ALTER TABLE `doctor` DISABLE KEYS */;
-INSERT INTO `doctor` VALUES (101,'李楠','我是一名资深的心理医生','情感,生活','我是你的树洞'),(102,'江心','我有着丰富的心理医生资历','情感,抑郁','我是一个倾听者'),(103,'汪成','我是一名资深的心理医生','情感,生活','我是您的最佳树洞'),(104,'张薇','大家好，我是张薇','情感,抑郁','我是您的心灵树洞');
+INSERT INTO `doctor` (`id`,`name`,`intruduce`,`type`,`say`) VALUES (101,'李楠','我是一名资深的心理医生','恋爱心理,自我成长','我是你的树洞'),(102,'江心','我有着丰富的心理医生资历','情绪管理,焦虑抑郁','我是一个倾听者'),(103,'汪成','我是一名资深的心理医生','人际关系,学业压力','我是您的最佳树洞'),(104,'张薇','大家好，我是张薇','情绪管理,亲子关系','我是您的心灵树洞');
 /*!40000 ALTER TABLE `doctor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -105,15 +106,19 @@ DROP TABLE IF EXISTS `user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
-  `userid` bigint NOT NULL,
+  `userid` bigint NOT NULL COMMENT '系统分配：学生=入学年+6位序号，医生=2+5位序号',
   `nickname` varchar(45) NOT NULL,
-  `sex` int NOT NULL,
-  `password` varchar(100) NOT NULL,
-  `phone` bigint DEFAULT NULL,
-  `email` varchar(45) DEFAULT NULL,
+  `sex` int NOT NULL COMMENT '0-女，1-男',
+  `password` varchar(100) NOT NULL COMMENT 'BCrypt加密',
+  `phone` varchar(11) NOT NULL COMMENT '手机号，唯一',
+  `email` varchar(60) DEFAULT NULL COMMENT '邮箱，唯一（可空）',
   `img` varchar(255) DEFAULT NULL,
-  `role` int NOT NULL,
-  PRIMARY KEY (`userid`)
+  `role` int NOT NULL COMMENT '0-学生，1-医生，2-管理员',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`userid`),
+  UNIQUE KEY `uk_user_phone` (`phone`),
+  UNIQUE KEY `uk_user_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -123,8 +128,31 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (101,'李楠',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui',12213238324,'231321@qq.com',NULL,1),(102,'江心',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui',12132323234,'2132132@qq.com',NULL,1),(103,'汪成',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui',14329374756,NULL,NULL,1),(104,'张薇',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui',12323343244,NULL,NULL,1),(111111,'admin',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui',15637242634,'123@qq.com',NULL,2),(2233320103,'paradx',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui',15867253472,'12312321@qq.com',NULL,0);
+INSERT INTO `user` (`userid`,`nickname`,`sex`,`password`,`phone`,`email`,`img`,`role`) VALUES (101,'李楠',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','12213238324','231321@qq.com',NULL,1),(102,'江心',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','12132323234','2132132@qq.com',NULL,1),(103,'汪成',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','14329374756',NULL,NULL,1),(104,'张薇',1,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','12323343244',NULL,NULL,1),(111111,'admin',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','15637242634','123@qq.com',NULL,2),(2233320103,'paradx',0,'$2a$10$U/AXGz/pklUwnnY9vOlpw.nS2ZakgP.XkDjnX/bS6A/KP4zPSbsui','15867253472','12312321@qq.com',NULL,0);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tag`
+-- 系统默认标签字典（医生擅长领域可选标签）
+--
+
+DROP TABLE IF EXISTS `tag`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tag` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) NOT NULL COMMENT '标签名称',
+  `sort_order` int DEFAULT 0 COMMENT '排序',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_tag_name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `tag` WRITE;
+/*!40000 ALTER TABLE `tag` DISABLE KEYS */;
+INSERT INTO `tag` (`name`,`sort_order`) VALUES ('情绪管理',1),('人际关系',2),('学业压力',3),('焦虑抑郁',4),('恋爱心理',5),('亲子关系',6),('职业规划',7),('睡眠问题',8),('自我成长',9);
+/*!40000 ALTER TABLE `tag` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

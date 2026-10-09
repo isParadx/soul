@@ -9,7 +9,7 @@
             <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
             <result property="sex" column="sex" jdbcType="INTEGER"/>
             <result property="password" column="password" jdbcType="VARCHAR"/>
-            <result property="phone" column="phone" jdbcType="BIGINT"/>
+            <result property="phone" column="phone" jdbcType="VARCHAR"/>
             <result property="email" column="email" jdbcType="VARCHAR"/>
             <result property="role" column="role" jdbcType="INTEGER"/>
     </resultMap>
@@ -33,6 +33,21 @@
     <!--    渲染用户信息-->
     <select id="selectById" resultType="com.paradx.soul.pojo.User">
         select * from user where userid=#{userId}
+    </select>
+
+    <!-- 按手机号查询 -->
+    <select id="selectByPhone" resultType="com.paradx.soul.pojo.User">
+        select * from user where phone=#{phone} limit 1
+    </select>
+
+    <!-- 按邮箱查询 -->
+    <select id="selectByEmail" resultType="com.paradx.soul.pojo.User">
+        select * from user where email=#{email} limit 1
+    </select>
+
+    <!-- 查询指定ID区间内的最大用户ID（用于系统分配账号） -->
+    <select id="selectMaxUserIdInRange" resultType="java.lang.Long">
+        select max(userid) from user where userid between #{start} and #{end}
     </select>
 
 

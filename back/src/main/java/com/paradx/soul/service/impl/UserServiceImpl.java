@@ -41,34 +41,116 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 用户注册
-     * 密码使用BCrypt加密存储
+     * 账号由系统按角色规则分配，密码使用BCrypt加密存储，
+     * 手机号必填唯一、邮箱选填唯一
      */
     @Override
-    public Result regist(User user) {
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUserid, user.getUserid());
-        Long count = userMapper.selectCount(queryWrapper);
-
-        if (count > 0) {
-            return Result.build(null, ResultCodeEnum.USERNAME_USED);
+    public synchronized Result regist(User user) {
+        // 手机号唯一性校验
+        if (userMapper.selectByPhone(user.getPhone()) != null) {
+            return Result.build(null, 400, "该手机号已被注册");
+        }
+        // 邮箱唯一性校验（选填：填了才校验）
+        if (StringUtils.hasText(user.getEmail()) && userMapper.selectByEmail(user.getEmail()) != null) {
+            return Result.build(null, 400, "该邮箱已被注册");
         }
 
-        // 使用BCrypt加密密码
-        user.setPassword(BCryptUtil.encrypt(user.getPassword()));
-        int rows = userMapper.insert(user);
-        return Result.ok(null);
+        // 系统分配账号（重试防止并发冲突）
+        for (int i = 0; i < 3; i++) {
+            Long userid = generateUserId(user.getRole());
+            if (userMapper.selectById(userid) != null) {
+                continue; // 极端并发下被占用，重新分配
+            }
+            user.setUserid(userid);
+            // 使用BCrypt加密密码
+            user.setPassword(BCryptUtil.encrypt(user.getPassword()));
+            userMapper.insert(user);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("userid", userid);
+            data.put("assigned", true);
+            return Result.ok(data);
+        }
+        return Result.build(null, 500, "账号分配失败，请稍后重试");
+    }
+
+    /**
+     * 按角色规则生成用户账号
+     * 学生：入学年(4位) + 6位序号，如 2026000001
+     * 医生：2 + 5位序号，如 200001
+     */
+    private Long generateUserId(Integer role) {
+        if (role != null && role == 1) {
+            long start = 200000L;
+            long end = 299999L;
+            Long max = userMapper.selectMaxUserIdInRange(start, end);
+            long next = (max == null) ? start + 1 : max + 1;
+            if (next > end) {
+                throw new IllegalStateException("医生账号号段已用尽");
+            }
+            return next;
+        }
+        // 学生（默认）
+        long base = (long) java.time.LocalDate.now().getYear() * 1000000L;
+        long start = base;
+        long end = base + 999999L;
+        Long max = userMapper.selectMaxUserIdInRange(start, end);
+        long next = (max == null) ? start + 1 : max + 1;
+        if (next > end) {
+            throw new IllegalStateException("本年度学生账号号段已用尽");
+        }
+        return next;
+    }
+
+    /**
+     * 校验手机号/邮箱是否可注册
+     */
+    @Override
+    public Result checkUnique(String field, String value) {
+        if (!StringUtils.hasText(field) || !StringUtils.hasText(value)) {
+            return Result.build(null, 400, "参数不能为空");
+        }
+        boolean available;
+        if ("phone".equalsIgnoreCase(field)) {
+            available = userMapper.selectByPhone(value.trim()) == null;
+        } else if ("email".equalsIgnoreCase(field)) {
+            available = userMapper.selectByEmail(value.trim()) == null;
+        } else {
+            return Result.build(null, 400, "不支持的校验字段");
+        }
+        Map<String, Object> data = new HashMap<>();
+        data.put("available", available);
+        return Result.ok(data);
     }
 
     /**
      * 用户登录
-     * 使用BCrypt验证密码，并验证设备类型与角色是否匹配
+     * 支持账号（学号/工号）、手机号、邮箱三种标识
      */
     @Override
-    public Result login(User user, DeviceUtil.DeviceType deviceType) {
-        // 根据账号查询
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUserid, user.getUserid());
-        User loginUser = userMapper.selectOne(queryWrapper);
+    public Result login(String account, String password, DeviceUtil.DeviceType deviceType) {
+        if (!StringUtils.hasText(account)) {
+            return Result.build(null, ResultCodeEnum.USERNAME_ERROR);
+        }
+        String identifier = account.trim();
+
+        // 按格式识别登录标识：含@为邮箱，11位手机号为手机号，其余为账号
+        User loginUser;
+        if (identifier.contains("@")) {
+            loginUser = userMapper.selectByEmail(identifier);
+        } else if (identifier.matches("^1[3-9]\\d{9}$")) {
+            // 兼容：手机号可能同时命中账号（纯数字），优先按账号精确匹配
+            loginUser = userMapper.selectByPhone(identifier);
+        } else {
+            loginUser = null;
+        }
+        if (loginUser == null) {
+            try {
+                loginUser = userMapper.selectById(Long.parseLong(identifier));
+            } catch (NumberFormatException ignored) {
+                // 非数字且非手机号/邮箱，视为账号不存在
+            }
+        }
 
         // 账号判断
         if (loginUser == null) {
@@ -76,8 +158,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         // 使用BCrypt验证密码
-        if (StringUtils.hasText(user.getPassword())
-                && BCryptUtil.matches(user.getPassword(), loginUser.getPassword()))
+        if (StringUtils.hasText(password)
+                && BCryptUtil.matches(password, loginUser.getPassword()))
         {
             // 设备类型验证：检查角色是否允许在当前设备上登录
             if (!DeviceUtil.isRoleAllowedOnDevice(loginUser.getRole(), deviceType)) {
@@ -90,6 +172,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             String token = jwtHelper.createToken(loginUser.getUserid(), loginUser.getRole());
             Map<String, Object> data = new HashMap<>();
             data.put("userId", loginUser.getUserid());
+            data.put("nickname", loginUser.getNickname());
             // 设置角色信息
             switch (loginUser.getRole()) {
                 case 0: data.put("role", "学生"); break;
@@ -105,9 +188,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return Result.build(null, ResultCodeEnum.PASSWORD_ERROR);
     }
 
-    /**
-     * 获取当前登录用户信息
-     */
     @Override
     public Result getUserInfo(String token) {
         Long userId = jwtHelper.getUserId(token);
@@ -127,9 +207,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 修改用户信息
+     * 手机号/邮箱需保持全局唯一
      */
     @Override
     public Result changeUserInfo(User user) {
+        // 手机号唯一性校验（排除自己）
+        if (StringUtils.hasText(user.getPhone())) {
+            User exist = userMapper.selectByPhone(user.getPhone());
+            if (exist != null && !exist.getUserid().equals(user.getUserid())) {
+                return Result.build(null, 400, "该手机号已被其他账号使用");
+            }
+        }
+        // 邮箱唯一性校验（排除自己）
+        if (StringUtils.hasText(user.getEmail())) {
+            User exist = userMapper.selectByEmail(user.getEmail());
+            if (exist != null && !exist.getUserid().equals(user.getUserid())) {
+                return Result.build(null, 400, "该邮箱已被其他账号使用");
+            }
+        }
         userMapper.changeUserInfo(user);
         return Result.ok(null);
     }

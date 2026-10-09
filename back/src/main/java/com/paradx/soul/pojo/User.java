@@ -29,10 +29,10 @@ public class User implements Serializable {
     /** 密码（BCrypt加密） */
     private String password;
     
-    /** 手机号 */
-    private Long phone;
+    /** 手机号（必填，唯一） */
+    private String phone;
     
-    /** 邮箱 */
+    /** 邮箱（选填，唯一） */
     private String email;
     
     /** 角色（0-学生，1-医生，2-管理员） */
@@ -45,7 +45,7 @@ public class User implements Serializable {
     }
 
     public User(Long userid, String nickname, Integer sex, String password, 
-                Long phone, String email, Integer role, String img) {
+                String phone, String email, Integer role, String img) {
         this.userid = userid;
         this.nickname = nickname;
         this.sex = sex;

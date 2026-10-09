@@ -2,6 +2,7 @@ package com.paradx.soul.controller;
 
 import com.paradx.soul.annotation.RequireRole;
 import com.paradx.soul.pojo.User;
+import com.paradx.soul.pojo.vo.LoginRequest;
 import com.paradx.soul.pojo.vo.PasswordChangeRequest;
 import com.paradx.soul.service.UserService;
 import com.paradx.soul.utils.DeviceUtil;
@@ -12,6 +13,7 @@ import com.paradx.soul.utils.ValidationUtil;
 import com.paradx.soul.utils.XssUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -33,20 +35,36 @@ public class UserController {
 
     /**
      * 注册接口
+     * 账号由系统按角色规则分配（学生=入学年+6位序号，医生=2+5位序号），前端不再传入
+     * 手机号必填唯一，邮箱选填唯一
      */
     @PostMapping("regist")
     public Result regist(@RequestBody User user) {
         // 参数校验
-        if (user.getUserid() == null) {
-            return Result.build(null, 400, "用户ID不能为空");
-        }
         if (!ValidationUtil.isValidNickname(user.getNickname())) {
             return Result.build(null, 400, "昵称格式不正确（2-20位，支持中英文、数字、下划线）");
         }
         if (!ValidationUtil.isValidPassword(user.getPassword())) {
             return Result.build(null, 400, "密码格式不正确（6-20位，需包含字母和数字）");
         }
-        
+        if (user.getPhone() == null || !ValidationUtil.isValidPhone(user.getPhone())) {
+            return Result.build(null, 400, "手机号格式不正确");
+        }
+        if (StringUtils.hasText(user.getEmail()) && !ValidationUtil.isValidEmail(user.getEmail())) {
+            return Result.build(null, 400, "邮箱格式不正确");
+        }
+        // 角色校验：仅允许自助注册学生(0)和医生(1)
+        if (user.getRole() == null || (user.getRole() != 0 && user.getRole() != 1)) {
+            user.setRole(0);
+        }
+        // 性别默认值
+        if (user.getSex() == null) {
+            user.setSex(0);
+        }
+        // 邮箱空串归一为null，避免唯一索引冲突
+        if (!StringUtils.hasText(user.getEmail())) {
+            user.setEmail(null);
+        }
         // XSS过滤
         user.setNickname(XssUtil.clean(user.getNickname()));
         if (user.getEmail() != null) {
@@ -57,20 +75,29 @@ public class UserController {
     }
 
     /**
+     * 手机号/邮箱唯一性校验接口（供注册页实时校验）
+     * @param field phone 或 email
+     */
+    @GetMapping("checkUnique")
+    public Result checkUnique(@RequestParam String field, @RequestParam String value) {
+        return userService.checkUnique(field, value);
+    }
+
+    /**
      * 登录接口
+     * 支持账号（学号/工号）、手机号、邮箱 + 密码登录
      * 支持设备类型检测，限制不同角色在指定设备上登录
      */
     @PostMapping("login")
-    public Result login(@RequestBody User user, 
+    public Result login(@RequestBody LoginRequest loginRequest,
                         @RequestHeader(value = "X-Device-Type", required = false) String deviceType) {
         // 基础校验
-        if (user.getUserid() == null || user.getPassword() == null) {
-            return Result.build(null, 400, "用户名或密码不能为空");
+        String account = loginRequest.resolveAccount();
+        if (account == null || account.isEmpty() || loginRequest.getPassword() == null) {
+            return Result.build(null, 400, "账号和密码不能为空");
         }
         // XSS清理
-        if (user.getPassword() != null) {
-            user.setPassword(XssUtil.clean(user.getPassword()));
-        }
+        String password = XssUtil.clean(loginRequest.getPassword());
 
         // 检测设备类型
         DeviceUtil.DeviceType detectedDevice;
@@ -87,8 +114,8 @@ public class UserController {
             }
         }
 
-        // 调用登录服务（传入设备类型）
-        return userService.login(user, detectedDevice);
+        // 调用登录服务（传入登录标识与设备类型）
+        return userService.login(account, password, detectedDevice);
     }
 
     /**
@@ -123,11 +150,30 @@ public class UserController {
      * 修改用户信息接口
      */
     @PostMapping("changeUserInfo")
-    public Result changeUserInfo(@RequestBody User user) {
+    public Result changeUserInfo(HttpServletRequest request,
+                                @RequestHeader(value = "token", required = false) String token,
+                                @RequestBody User user) {
+        // 安全约束：只能修改当前登录用户自己的信息
+        String realToken = resolveToken(request, token);
+        Long userId = (realToken != null && !realToken.isEmpty()) ? jwtHelper.getUserId(realToken) : null;
+        if (userId == null) {
+            return Result.build(null, ResultCodeEnum.NOTLOGIN);
+        }
+        user.setUserid(userId);
         // 校验昵称格式
         if (user.getNickname() != null && !ValidationUtil.isValidNickname(user.getNickname())) {
             return Result.build(null, 400, "昵称格式不正确");
         }
+        // 校验手机号格式（必填字段若传了就校验）
+        if (user.getPhone() != null && !ValidationUtil.isValidPhone(user.getPhone())) {
+            return Result.build(null, 400, "手机号格式不正确");
+        }
+        if (user.getEmail() != null && !user.getEmail().isEmpty() && !ValidationUtil.isValidEmail(user.getEmail())) {
+            return Result.build(null, 400, "邮箱格式不正确");
+        }
+        // 不允许通过该接口修改角色/密码
+        user.setRole(null);
+        user.setPassword(null);
         // XSS过滤
         if (user.getNickname() != null) {
             user.setNickname(XssUtil.clean(user.getNickname()));

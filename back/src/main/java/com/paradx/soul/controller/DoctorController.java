@@ -20,6 +20,36 @@ public class DoctorController {
     @Autowired
     private DoctorService doctorService;
 
+    /** 标签最大数量 */
+    private static final int MAX_TAGS = 6;
+    /** 单个标签最大长度 */
+    private static final int MAX_TAG_LENGTH = 7;
+
+    /**
+     * 规范化擅长领域标签：支持中英文逗号分隔，去空白、去重、限量限长
+     */
+    private String normalizeTags(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            return null;
+        }
+        String[] parts = type.split("[,，]");
+        java.util.LinkedHashSet<String> tags = new java.util.LinkedHashSet<>();
+        for (String part : parts) {
+            String tag = part.trim();
+            if (tag.isEmpty()) {
+                continue;
+            }
+            if (tag.length() > MAX_TAG_LENGTH) {
+                tag = tag.substring(0, MAX_TAG_LENGTH);
+            }
+            tags.add(tag);
+            if (tags.size() >= MAX_TAGS) {
+                break;
+            }
+        }
+        return tags.isEmpty() ? null : String.join(",", tags);
+    }
+
     /**
      * 查询所有医师/搜索功能（公开接口）
      */
@@ -54,6 +84,7 @@ public class DoctorController {
         if (doctor.getSay() != null) {
             doctor.setSay(XssUtil.clean(doctor.getSay()));
         }
+        doctor.setType(normalizeTags(doctor.getType()));
         return doctorService.addDoctor(doctor);
     }
 
@@ -81,6 +112,7 @@ public class DoctorController {
         if (doctor.getIntruduce() != null) {
             doctor.setIntruduce(XssUtil.clean(doctor.getIntruduce()));
         }
+        doctor.setType(normalizeTags(doctor.getType()));
         return doctorService.changeDoctor(doctor);
     }
 
