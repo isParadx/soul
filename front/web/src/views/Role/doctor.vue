@@ -3,7 +3,7 @@
     <!-- 顶部导航 -->
     <el-header class="doctor-header">
       <div class="header-brand">
-        <span class="brand-icon">◈</span>
+        <img class="brand-icon" :src="logoImg" alt="心灵驿站" />
         <span class="brand-text">心灵驿站 · 医生工作台</span>
       </div>
       <div class="header-user">
@@ -65,16 +65,13 @@
         </router-view>
       </el-main>
     </el-container>
-
-    <!-- AI助手 -->
-    <CozeChat />
   </el-container>
 </template>
 
 <script>
 import { Calendar, UserFilled, SwitchButton, Camera } from '@element-plus/icons-vue'
-import CozeChat from '../../components/CozeChat/CozeChat.vue';
 import { resolveAvatarUrl } from '../../api/axios';
+import logoImg from '@/assets/img/logo.png';
 
 export default {
   name: 'DoctorLayout',
@@ -82,11 +79,11 @@ export default {
     Calendar,
     UserFilled,
     SwitchButton,
-    Camera,
-    CozeChat
+    Camera
   },
   data() {
     return {
+      logoImg,
       username: '',
       avatarUrl: '',
       activeMenu: '/doctor/appointments'
@@ -197,8 +194,10 @@ export default {
 }
 
 .brand-icon {
-  font-size: 20px;
-  color: #5B8C8A;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .brand-text {

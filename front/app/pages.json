@@ -90,13 +90,6 @@
 			{
 				"navigationBarTitleText" : "咨询预约"
 			}
-		},
-		{
-			"path" : "pages/CozeChat/CozeChat",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
-			}
 		}
 	],
 	"globalStyle": {

@@ -1,37 +1,57 @@
 <template>
-  <view class="order-container">
-    <view class="order-tab">
-      <view 
+  <view class="page">
+    <!-- 状态分段筛选 -->
+    <view class="seg">
+      <view
+        class="seg-item"
         v-for="(status, index) in orderStatus"
         :key="index"
-        :class="{ 'active': currentStatus === status.value }"
+        :class="{ 'seg-item-on': currentStatus === status.value }"
         @click="changeStatus(status.value)"
       >
         {{ status.name }}
       </view>
     </view>
-    <view class="order-list">
-      <view v-for="order in filteredOrders" :key="order.id" class="order-item">
-        <view class="order-item-head">
-          <view class="order-item-head-info">
-            <text>订单号：{{ order.id }}</text>
-            <text class="status">{{ order.status }}</text>
+
+    <!-- 订单列表 -->
+    <view class="list">
+      <view class="card" v-for="order in filteredOrders" :key="order.id">
+        <view class="card-head">
+          <view class="card-head-left">
+            <text class="order-no">订单号 {{ order.id }}</text>
+            <text class="order-time">{{ order.appointmentTime }}</text>
           </view>
-          <text @click="toggleDetail(order)" class="clicktext">↓</text>
-        </view> 
-        <view v-if="expandedOrder === order" class="order-detail">
-          <view>
-            <text>医师编号：{{ order.docId }}</text>
-            <text>医师姓名：{{ order.name }}</text>
-            <text>预约时间：{{ order.appointmentTime }}</text>
+          <text class="pill" :class="statusClass(order.status)">{{ order.status }}</text>
+        </view>
+
+        <view class="card-toggle" @click="toggleDetail(order)">
+          <text class="toggle-text">{{ expandedOrder === order ? '收起详情' : '查看详情' }}</text>
+          <text class="toggle-icon" :class="{ 'toggle-icon-on': expandedOrder === order }">⌄</text>
+        </view>
+
+        <view v-if="expandedOrder === order" class="card-body">
+          <view class="row">
+            <text class="row-k">医师姓名</text>
+            <text class="row-v">{{ order.name }}</text>
           </view>
-          <view v-if="order.status === '已结束'" class="feedback-box">
-            <text>反馈：{{ order.feedback }}</text>
+          <view class="row">
+            <text class="row-k">医师编号</text>
+            <text class="row-v">{{ order.docId }}</text>
+          </view>
+          <view class="row">
+            <text class="row-k">预约时间</text>
+            <text class="row-v">{{ order.appointmentTime }}</text>
+          </view>
+          <view v-if="order.status === '已结束'" class="feedback">
+            <text class="feedback-k">咨询反馈</text>
+            <text class="feedback-v">{{ order.feedback }}</text>
           </view>
         </view>
       </view>
+
+      <view class="list-empty" v-if="filteredOrders.length === 0">暂无预约记录</view>
+      <text class="text-loading" v-else>— 已加载全部 —</text>
     </view>
-	 <text class="text-loading">~~加载完毕~~</text>
   </view>
 </template>
 
@@ -44,7 +64,7 @@ export default {
       currentStatus: 'all',
       expandedOrder: null, // 用于跟踪当前展开的订单项
       orderStatus: [
-        { name: '全部订单', value: 'all' },
+        { name: '全部', value: 'all' },
         { name: '未开始', value: '未开始' },
         { name: '进行中', value: '进行中' },
         { name: '已结束', value: '已结束' }
@@ -71,6 +91,12 @@ export default {
     }
   },
   methods: {
+    // 状态对应的徽标配色
+    statusClass(status) {
+      if (status === '进行中') return 'pill-doing';
+      if (status === '已结束') return 'pill-done';
+      return 'pill-wait';
+    },
     changeStatus(status) {
       this.currentStatus = status;
       this.expandedOrder = null;
@@ -153,86 +179,181 @@ export default {
 };
 </script>
 
-<style>  
-.order-container {
-  height: 100%;
-  background-color: #e6e6fa;
-  padding: 15px;
+<style>
+.page {
+  min-height: 100vh;
+  padding: 16px 16px 40px;
+  box-sizing: border-box;
+  background-color: #f5f7fa;
 }
-.order-tab {
+
+/* ---- 分段筛选 ---- */
+.seg {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  border-bottom: 1px solid #ccc;
-}
-.order-tab view {
-  padding: 10px;
-  cursor: pointer;
-}
-.order-tab .active {
-  border-bottom: 2px solid blue;
+  padding: 4px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(91, 140, 138, 0.07);
 }
 
-/* 订单列表样式 */
-.order-list {
-  margin-top: 10px;
-}
-
-.order-item {
-  margin-bottom: 20px;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-.order-item:hover {
-  background-color: #f9f9f9;
-}
-
-.order-item-head{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.order-item-head-info{
-  width: 50%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.clicktext{
+.seg-item {
+  flex: 1;
+  height: 38px;
+  line-height: 38px;
+  text-align: center;
   font-size: 14px;
-  color: #666;
+  color: #6b7a78;
+  border-radius: 11px;
 }
 
-.order-detail {
-  width: 90%;
-  margin-top: 10px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #fafafa;
-}
-.status {
-  color: red;
-  font-weight: bold;
+.seg-item-on {
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+  color: #ffffff;
+  font-weight: 600;
 }
 
-.feedback-box {
+/* ---- 订单卡片 ---- */
+.list {
+  margin-top: 16px;
+}
+
+.card {
+  margin-bottom: 12px;
+  padding: 16px;
+  background-color: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(91, 140, 138, 0.08);
+}
+
+.card-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-head-left {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.order-no {
+  font-size: 15px;
+  font-weight: 600;
+  color: #33413f;
+}
+
+.order-time {
+  font-size: 12px;
+  color: #9aa5a3;
+  margin-top: 6px;
+}
+
+.pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.pill-wait {
+  background-color: #EAF3F2;
+  color: #4A7A78;
+}
+
+.pill-doing {
+  background-color: #FDF1E3;
+  color: #C4842C;
+}
+
+.pill-done {
+  background-color: #F1F3F4;
+  color: #8a9694;
+}
+
+.card-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f3f3;
+}
+
+.toggle-text {
+  font-size: 13px;
+  color: #5b8c8a;
+}
+
+.toggle-icon {
+  font-size: 15px;
+  color: #5b8c8a;
+  margin-left: 6px;
+}
+
+.toggle-icon-on {
+  color: #a9b4b2;
+}
+
+.card-body {
+  margin-top: 12px;
+  padding: 14px;
+  background-color: #f7fafa;
+  border-radius: 14px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 32px;
+}
+
+.row-k {
+  font-size: 13px;
+  color: #9aa5a3;
+}
+
+.row-v {
+  font-size: 13px;
+  color: #33413f;
+}
+
+.feedback {
   margin-top: 10px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f0f0f0; /* 浅灰色背景框 */
+  padding: 12px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.feedback-k {
+  font-size: 12px;
+  color: #4A7A78;
+  margin-bottom: 6px;
+}
+
+.feedback-v {
+  font-size: 13px;
+  color: #5a6a68;
+  line-height: 20px;
+}
+
+.list-empty {
+  text-align: center;
+  font-size: 14px;
+  color: #9aa5a3;
+  padding: 40px 0;
 }
 
 .text-loading {
-  font-size: 12px; 
-  color: #888; 
-  text-align: center; 
-  margin-top: 10px; 
+  font-size: 12px;
+  color: #b3bdbb;
+  text-align: center;
+  margin-top: 14px;
 }
 </style>

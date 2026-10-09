@@ -3,14 +3,7 @@
     <div class="start-form">
       <!-- 品牌区域 -->
       <div class="brand-area">
-        <div class="brand-icon">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="24" cy="24" r="22" stroke="#5B8C8A" stroke-width="2" fill="#F7FAF9"/>
-            <path d="M24 12C24 12 16 20 16 28C16 32.4183 19.5817 36 24 36C28.4183 36 32 32.4183 32 28C32 20 24 12 24 12Z" fill="#5B8C8A" opacity="0.15"/>
-            <path d="M24 14V34M18 24H30" stroke="#5B8C8A" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <h1 class="brand-title">心灵驿站</h1>
+        <img class="brand-logo" :src="logoImg" alt="心灵驿站" />
         <p class="brand-subtitle">学生心理咨询预约系统</p>
       </div>
 
@@ -33,6 +26,7 @@
 </template>
 
 <script>
+import logoImg from '@/assets/img/logo.png';
 import LoginForm from '@/components/OutMain/Login.vue';
 import RegisterForm from '@/components/OutMain/Register.vue';
 
@@ -44,6 +38,7 @@ export default {
   },
   data() {
     return {
+      logoImg,
       activeTab: 'login'
     };
   }
@@ -83,28 +78,17 @@ html, body {
 /* 品牌区域 */
 .brand-area {
   text-align: center;
-  margin-bottom: 32px;
-  padding-bottom: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
   border-bottom: 1px solid #EEF1F0;
 }
 
-.brand-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 16px;
-}
-
-.brand-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.brand-title {
-  font-size: 24px;
-  font-weight: 500;
-  color: #2D3A3A;
-  margin: 0 0 6px;
-  letter-spacing: 2px;
+.brand-logo {
+  display: block;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin: 0 auto 8px;
 }
 
 .brand-subtitle {

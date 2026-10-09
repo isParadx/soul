@@ -203,10 +203,10 @@ export default {
 /* 列表式表单卡片 */
 .card {
   background-color: #ffffff;
-  border-radius: 14px;
+  border-radius: 18px;
   margin-top: 16px;
   padding: 0 16px;
-  box-shadow: 0 2px 12px rgba(91, 140, 138, 0.06);
+  box-shadow: 0 6px 20px rgba(91, 140, 138, 0.08);
 }
 
 .cell {
@@ -260,10 +260,12 @@ export default {
   height: 46px;
   line-height: 46px;
   margin-top: 24px;
-  background-color: #5b8c8a;
   color: #ffffff;
   font-size: 16px;
+  font-weight: 600;
   border-radius: 23px;
   border: none;
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+  box-shadow: 0 6px 16px rgba(91, 140, 138, 0.24);
 }
 </style>

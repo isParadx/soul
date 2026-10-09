@@ -71,17 +71,7 @@
         </el-form-item>
 
         <el-form-item label="擅长领域" prop="type">
-          <el-input
-            v-model="customTag"
-            placeholder="输入自定义标签后回车添加"
-            maxlength="7"
-            @keyup.enter="addCustomTag"
-          >
-            <template #append>
-              <el-button @click="addCustomTag">添加</el-button>
-            </template>
-          </el-input>
-          <div class="field-tip">点击系统推荐标签快速添加，也可自定义（最多 {{ MAX_TAGS }} 个，单个不超过 7 字）</div>
+          <div class="field-tip">点击系统推荐标签快速添加，点击「＋」可自定义（最多 {{ MAX_TAGS }} 个，单个不超过 7 字）</div>
 
           <div class="tag-group-title">系统推荐</div>
           <div class="tag-group">
@@ -92,6 +82,11 @@
               :class="{ 'is-active': selectedTags.includes(tag) }"
               @click="toggleTag(tag)"
             >{{ tag }}</span>
+            <span
+              class="tag-chip tag-add"
+              title="添加自定义标签"
+              @click="openTagDialog"
+            >＋</span>
           </div>
 
           <div class="tag-group-title">已选择 <span class="count">({{ selectedTags.length }}/{{ MAX_TAGS }})</span></div>
@@ -127,6 +122,27 @@
         @click="saveAll"
       >{{ saving ? '正在保存...' : '保存修改' }}</el-button>
     </el-form>
+
+    <!-- 自定义标签弹窗 -->
+    <el-dialog
+      v-model="tagDialogVisible"
+      title="添加自定义标签"
+      width="360px"
+      :append-to-body="true"
+    >
+      <el-input
+        ref="tagInput"
+        v-model="customTag"
+        maxlength="7"
+        show-word-limit
+        placeholder="请输入标签内容（最多 7 个字）"
+        @keyup.enter="confirmAddTag"
+      />
+      <template #footer>
+        <el-button @click="tagDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmAddTag">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -142,6 +158,7 @@ export default {
       img: '',
       docExists: false,
       customTag: '',
+      tagDialogVisible: false,
       defaultTags: [],
       selectedTags: [],
       form: {
@@ -256,9 +273,23 @@ export default {
       this.selectedTags.push(tag);
       this.$refs.docInfoForm.validateField('type');
     },
-    addCustomTag() {
+    openTagDialog() {
+      if (this.selectedTags.length >= this.MAX_TAGS) {
+        this.$message.warning(`最多选择 ${this.MAX_TAGS} 个标签`);
+        return;
+      }
+      this.customTag = '';
+      this.tagDialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs.tagInput && this.$refs.tagInput.focus();
+      });
+    },
+    confirmAddTag() {
       const tag = (this.customTag || '').trim();
-      if (!tag) return;
+      if (!tag) {
+        this.$message.warning('请输入标签内容');
+        return;
+      }
       if (tag.length > 7) {
         this.$message.warning('单个标签不超过七个字');
         return;
@@ -274,6 +305,7 @@ export default {
       }
       this.selectedTags.push(tag);
       this.customTag = '';
+      this.tagDialogVisible = false;
       this.$refs.docInfoForm.validateField('type');
     },
     removeTag(tag) {
@@ -377,9 +409,9 @@ export default {
   position: relative;
   max-width: 960px;
   margin: 0 auto 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 20px rgba(91, 140, 138, 0.10);
 }
 
 .hero-bg {
@@ -441,7 +473,7 @@ export default {
 .hero-name {
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: #33413F;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -450,7 +482,7 @@ export default {
 .hero-account {
   margin-top: 6px;
   font-size: 13px;
-  color: #909399;
+  color: #7A8A88;
   letter-spacing: 0.5px;
 }
 
@@ -459,9 +491,9 @@ export default {
   max-width: 960px;
   margin: 0 auto;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 28px 32px 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 20px rgba(91, 140, 138, 0.10);
   box-sizing: border-box;
 }
 
@@ -474,7 +506,7 @@ export default {
   align-items: center;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #33413F;
   margin: 8px 0 18px;
 }
 
@@ -489,7 +521,7 @@ export default {
 
 .field-tip {
   font-size: 12px;
-  color: #909399;
+  color: #9AA8A6;
   line-height: 1.6;
   margin-top: 4px;
 }
@@ -535,6 +567,23 @@ export default {
   color: #fff;
 }
 
+.tag-chip.tag-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 5px 14px;
+  border-style: dashed;
+  border-color: #B9CFCC;
+  color: #5B8C8A;
+  font-weight: 600;
+}
+
+.tag-chip.tag-add:hover {
+  border-color: #5B8C8A;
+  background: #EAF3F2;
+}
+
 .selected-group {
   min-height: 32px;
   align-items: center;
@@ -549,14 +598,14 @@ export default {
   width: 100%;
   height: 42px;
   font-size: 15px;
-  border-radius: 8px;
+  border-radius: 21px;
   margin-top: 8px;
-  background-color: #5B8C8A;
-  border-color: #5B8C8A;
+  background: linear-gradient(135deg, #5B8C8A 0%, #7FB3B0 100%);
+  border: none;
+  box-shadow: 0 6px 16px rgba(91, 140, 138, 0.24);
 }
 
 .save-btn:hover {
-  background-color: #4A7A78;
-  border-color: #4A7A78;
+  background: linear-gradient(135deg, #4A7A78 0%, #6BA39F 100%);
 }
 </style>

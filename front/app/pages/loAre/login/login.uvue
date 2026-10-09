@@ -1,7 +1,7 @@
 <template>
   <view class="page">
     <view class="header">
-      <view class="logo">🌿</view>
+      <image class="logo" src="/static/logo.png" mode="aspectFit" />
       <view class="title">心灵驿站</view>
       <view class="subtitle">学生心理咨询预约系统</view>
     </view>
@@ -123,7 +123,9 @@ export default {
 }
 
 .logo {
-  font-size: 56px;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto;
 }
 
 .title {
@@ -141,9 +143,9 @@ export default {
 
 .card {
   background-color: #ffffff;
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 26px 20px;
-  box-shadow: 0 4px 16px rgba(91, 140, 138, 0.08);
+  box-shadow: 0 8px 24px rgba(91, 140, 138, 0.10);
 }
 
 .field {
@@ -165,7 +167,7 @@ export default {
   box-sizing: border-box;
   background-color: #f7f9f9;
   border: 1px solid #e4ebea;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 15px;
   color: #33413f;
 }
@@ -175,11 +177,13 @@ export default {
   height: 46px;
   line-height: 46px;
   margin-top: 8px;
-  background-color: #5b8c8a;
   color: #ffffff;
   font-size: 16px;
+  font-weight: 600;
   border-radius: 23px;
   border: none;
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+  box-shadow: 0 6px 16px rgba(91, 140, 138, 0.24);
 }
 
 .foot {

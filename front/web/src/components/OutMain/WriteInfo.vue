@@ -2,7 +2,7 @@
   <div class="write-info-page">
     <div class="info-card">
       <div class="card-header">
-        <div class="header-icon">🩺</div>
+        <img class="header-logo" :src="logoImg" alt="心灵驿站" />
         <h2 class="card-title">完善执业信息</h2>
         <p class="card-subtitle">
           您的账号 <b class="account">{{ assignedAccount || '—' }}</b> 已分配成功，完善以下信息后即可登录使用
@@ -28,18 +28,7 @@
         </el-form-item>
 
         <el-form-item label="擅长领域" prop="type">
-          <el-input
-            v-model="customTag"
-            class="tag-input"
-            placeholder="输入自定义标签后回车添加"
-            maxlength="7"
-            @keyup.enter="addCustomTag"
-          >
-            <template #append>
-              <el-button @click="addCustomTag">添加</el-button>
-            </template>
-          </el-input>
-          <div class="type-tip">点击下方标签快速添加，也可自定义（最多 {{ MAX_TAGS }} 个，单个不超过 7 字）</div>
+          <div class="type-tip">点击下方标签快速添加，点击「＋」可自定义（最多 {{ MAX_TAGS }} 个，单个不超过 7 字）</div>
 
           <!-- 系统默认标签 -->
           <div class="tag-group-title">系统推荐</div>
@@ -51,6 +40,11 @@
               :class="{ 'is-active': selectedTags.includes(tag) }"
               @click="toggleTag(tag)"
             >{{ tag }}</span>
+            <span
+              class="tag-chip tag-add"
+              title="添加自定义标签"
+              @click="openTagDialog"
+            >＋</span>
           </div>
 
           <!-- 已选标签 -->
@@ -67,7 +61,6 @@
             <span v-if="!selectedTags.length" class="empty-tip">尚未选择标签</span>
           </div>
         </el-form-item>
-
         <el-form-item label="医师寄语（选填）" prop="say">
           <el-input
             type="textarea"
@@ -89,19 +82,44 @@
         </el-form-item>
       </el-form>
     </div>
+
+    <!-- 自定义标签弹窗 -->
+    <el-dialog
+      v-model="tagDialogVisible"
+      title="添加自定义标签"
+      width="360px"
+      :append-to-body="true"
+    >
+      <el-input
+        ref="tagInput"
+        v-model="customTag"
+        maxlength="7"
+        show-word-limit
+        placeholder="请输入标签内容（最多 7 个字）"
+        @keyup.enter="confirmAddTag"
+      />
+      <template #footer>
+        <el-button @click="tagDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmAddTag">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import logoImg from '@/assets/img/logo.png';
+
 export default {
   name: 'WriteInfo',
   data() {
     return {
+      logoImg,
       MAX_TAGS: 6,
       submitting: false,
       assignedAccount: '',
       nickname: '',
       customTag: '',
+      tagDialogVisible: false,
       defaultTags: [],
       selectedTags: [],
       doctorForm: {
@@ -152,9 +170,23 @@ export default {
       this.selectedTags.push(tag);
       this.$refs.doctorForm.validateField('type');
     },
-    addCustomTag() {
+    openTagDialog() {
+      if (this.selectedTags.length >= this.MAX_TAGS) {
+        this.$message.warning(`最多选择 ${this.MAX_TAGS} 个标签`);
+        return;
+      }
+      this.customTag = '';
+      this.tagDialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs.tagInput && this.$refs.tagInput.focus();
+      });
+    },
+    confirmAddTag() {
       const tag = (this.customTag || '').trim();
-      if (!tag) return;
+      if (!tag) {
+        this.$message.warning('请输入标签内容');
+        return;
+      }
       if (tag.length > 7) {
         this.$message.warning('单个标签不超过七个字');
         return;
@@ -170,6 +202,7 @@ export default {
       }
       this.selectedTags.push(tag);
       this.customTag = '';
+      this.tagDialogVisible = false;
       this.$refs.doctorForm.validateField('type');
     },
     removeTag(tag) {
@@ -236,9 +269,13 @@ export default {
   margin-bottom: 24px;
 }
 
-.header-icon {
-  font-size: 40px;
-  margin-bottom: 8px;
+.header-logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin: 0 auto 8px;
+  border-radius: 14px;
 }
 
 .card-title {
@@ -306,6 +343,23 @@ export default {
   background: #5B8C8A;
   border-color: #5B8C8A;
   color: #fff;
+}
+
+.tag-chip.tag-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 5px 14px;
+  border-style: dashed;
+  border-color: #B9CFCC;
+  color: #5B8C8A;
+  font-weight: 600;
+}
+
+.tag-chip.tag-add:hover {
+  border-color: #5B8C8A;
+  background: #EAF3F2;
 }
 
 .selected-group {

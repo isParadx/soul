@@ -1,73 +1,89 @@
 <template>
-  <view class="doctor-detail-container">
-    <!-- 医生头像 -->
-    <view class="doctor-avatar">
-      <image class="doctor-avatar-image" src="/static/user.png" />
+  <view class="page">
+    <!-- 医师名片 -->
+    <view class="doc-card">
+      <view class="doc-avatar">
+        <image class="doc-avatar-img" src="/static/user.png" mode="aspectFill" />
+      </view>
+      <view class="doc-meta">
+        <text class="doc-name">{{ doctor.name || '医师' }}</text>
+        <view class="doc-tags">
+          <text class="doc-tag" v-for="(item, index) in doctor.type" :key="index">{{ item }}</text>
+        </view>
+      </view>
     </view>
 
-    <!-- 医生姓名 -->
-    <view class="doctor-name">{{ doctor.name }}</view>
-
-    <!-- 内置tabbar -->
-    <view class="tabs">
-      <view class="tab-item" @click="switchTab(0)" :class="{ active: currentTab === 0 }">个人简介</view>
-      <view class="tab-item" @click="switchTab(1)" :class="{ active: currentTab === 1 }">擅长领域</view>
-      <view class="tab-item" @click="switchTab(2)" :class="{ active: currentTab === 2 }">医师寄语</view>
+    <!-- 分段标签 -->
+    <view class="seg">
+      <view class="seg-item" :class="{ 'seg-item-on': currentTab === 0 }" @click="switchTab(0)">个人简介</view>
+      <view class="seg-item" :class="{ 'seg-item-on': currentTab === 1 }" @click="switchTab(1)">擅长领域</view>
+      <view class="seg-item" :class="{ 'seg-item-on': currentTab === 2 }" @click="switchTab(2)">医师寄语</view>
     </view>
 
-    <!-- 医生信息 -->
-    <view class="doctor-info">
-      <view v-show="currentTab === 0" class="description-content">
-        {{ doctor.intruduce }}
+    <!-- 内容面板 -->
+    <view class="panel">
+      <view v-show="currentTab === 0" class="paragraph">{{ doctor.intruduce }}</view>
+      <view v-show="currentTab === 1" class="tag-wrap">
+        <text class="tag" v-for="(item, index) in doctor.type" :key="index">{{ item }}</text>
       </view>
-      <view v-show="currentTab === 1" class="specialty-tags">
-        <view class="tag" v-for="(item, index) in doctor.type" :key="index">{{ item }}</view>
-      </view>
-	  <view v-show="currentTab === 2" class="description-content">
-	    {{doctor.say}}
-	  </view>
+      <view v-show="currentTab === 2" class="paragraph">{{ doctor.say }}</view>
     </view>
 
     <!-- 咨询须知 -->
-    <view class="consultation-notice-container">
-      <view class="consultation-notice-title">咨询须知</view>
-      <view class="consultation-notice-content">
-        1、咨询为预约服务，您可选择老师进行预约，每次咨询50分钟或60分钟。
-        <br>
-        2、预约成功后，您的预约需咨询师确认并安排咨询时间，请留意您的订单状态。
-        <br>
-        3、当订单状态为"准备进行"时，意味着您在24小时之后-48小时之前可随时拜访心理咨询室
-		<br>
-        4、因不可抗力因素变更时间或取消咨询预约，请提前12小时告知咨询师。
+    <view class="notice">
+      <view class="notice-head">
+        <text class="notice-bar"></text>
+        <text class="notice-title">咨询须知</text>
+      </view>
+      <view class="notice-body">
+        <view class="notice-line">1、咨询为预约服务，您可选择老师进行预约，每次咨询50分钟或60分钟。</view>
+        <view class="notice-line">2、预约成功后，您的预约需咨询师确认并安排咨询时间，请留意您的订单状态。</view>
+        <view class="notice-line">3、当订单状态为“准备进行”时，意味着您在24小时之后-48小时之前可随时拜访心理咨询室。</view>
+        <view class="notice-line">4、因不可抗力因素变更时间或取消咨询预约，请提前12小时告知咨询师。</view>
       </view>
     </view>
-    <!-- 立即咨询按钮 -->
-    <button class="consult-now" @click="consultNow">立即咨询</button>
-  </view>
-  
-  <view class="modal" v-if="isShowModal">
-    <view class="modal-content">
-     <view class="modal-header">
-       选择预约日期
-       <view class="smailtabs">
-         <view class="tab-item" @click="selectDate(date)" :class="{ active: selectedDate === date }" v-for="(date, index) in dates" :key="index">
-           {{ date }}
-         </view>
-       </view>
-     </view>
-      <view class="modal-body">
-        <view class="time-picker">
-          <view 
-            v-for="time in availableTimes" 
-            :class="{'selected': time.selected, 'unavailable': !time.available}"
+
+    <!-- 底部操作栏 -->
+    <view class="bottom-bar">
+      <button class="consult-now" @click="consultNow">立即咨询</button>
+    </view>
+
+    <!-- 预约弹窗 -->
+    <view class="modal" v-if="isShowModal">
+      <view class="sheet">
+        <view class="sheet-head">
+          <text class="sheet-title">选择预约时间</text>
+          <text class="sheet-close" @click="closeModal">✕</text>
+        </view>
+
+        <text class="sheet-label">预约日期</text>
+        <view class="date-row">
+          <view
+            class="date-chip"
+            v-for="(date, index) in dates"
+            :key="index"
+            :class="{ 'date-chip-on': selectedDate === date }"
+            @click="selectDate(date)"
+          >
+            <text class="date-day" :class="{ 'date-text-on': selectedDate === date }">{{ dayName(index) }}</text>
+            <text class="date-md" :class="{ 'date-text-on': selectedDate === date }">{{ dateShort(date) }}</text>
+          </view>
+        </view>
+
+        <text class="sheet-label">时间段</text>
+        <view class="time-grid">
+          <view
+            class="time-chip"
+            v-for="time in availableTimes"
             :key="time.time"
-            @click="selectTime(time.time)">
+            :class="{ 'time-chip-on': time.selected, 'time-chip-off': !time.available }"
+            @click="selectTime(time)"
+          >
             {{ time.time }}
           </view>
         </view>
-      </view>
-      <view class="modal-footer">
-        <button @click="confirmBooking">确认预约</button>
+
+        <button class="sheet-btn" @click="confirmBooking">确认预约</button>
       </view>
     </view>
   </view>
@@ -151,7 +167,19 @@ data() {
 		});
 	},
 	
-	
+	// 日期展示：今天 / 明天 / 后天
+	dayName(index) {
+		const names = ['今天', '明天', '后天'];
+		return names[index] || '';
+	},
+	// 日期展示：只取 月.日 部分
+	dateShort(date) {
+		const parts = String(date).split('-');
+		return parts.length > 1 ? parts[1] : date;
+	},
+	closeModal() {
+		this.isShowModal = false;
+	},
 	
     switchTab(index) {
       this.currentTab = index;
@@ -253,14 +281,23 @@ data() {
       selectDate(date) {
 		  console.log(date)
         this.selectedDate = date;
+        this.selectedTime = '';
         this.updateAvailableTimes(); // 更新可用时间段
       },
     
       selectTime(time) {
+		// 已被占用或已过期的时间段不可选择
+		if (time.available === false) {
+			uni.showToast({
+				title: '该时间段不可预约，请选择其他时间',
+				icon: 'none'
+			});
+			return;
+		}
         this.availableTimes.forEach((item) => {
-          item.selected = item.time === time;
+          item.selected = item.time === time.time;
         });
-        this.selectedTime = time;
+        this.selectedTime = time.time;
       },
     
       confirmBooking() {
@@ -304,229 +341,320 @@ data() {
 </script>
 
 <style>
-.doctor-detail-container {
-  height: 100%;
-  background-color: #e6e6fa;
-  padding: 15px;
+.page {
+  min-height: 100vh;
+  padding: 16px 16px 96px;
+  box-sizing: border-box;
+  background-color: #f5f7fa;
 }
 
-.doctor-avatar {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.doctor-avatar-image {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-}
-
-.doctor-name {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.tabs {
+/* ---- 医师名片 ---- */
+.doc-card {
   display: flex;
   flex-direction: row;
-  margin-top: 20px;
-  border-bottom: 1px solid #ccc;
+  align-items: center;
+  padding: 20px;
+  border-radius: 20px;
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+  box-shadow: 0 10px 26px rgba(91, 140, 138, 0.22);
 }
 
-.tab-item {
+.doc-avatar {
+  width: 66px;
+  height: 66px;
+  border-radius: 22px;
+  overflow: hidden;
+  background-color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+}
+
+.doc-avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.doc-meta {
   flex: 1;
-  text-align: center;
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
+  margin-left: 14px;
+  display: flex;
+  flex-direction: column;
 }
 
-.tab-item.active {
-  border-bottom-color: #007aff;
+.doc-name {
+  font-size: 19px;
+  font-weight: 600;
+  color: #ffffff;
 }
 
-.doctor-info {
-  margin-top: 20px;
-}
-
-.description-content {
-  font-size: 14px;
-  color: #666;
-  text-indent: 2em; /* 首行缩进 */
-}
-
-.specialty-tags {
+.doc-tags {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 10px;
+  margin-top: 10px;
+}
+
+.doc-tag {
+  padding: 3px 10px;
+  margin-right: 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+
+/* ---- 分段标签 ---- */
+.seg {
+  display: flex;
+  flex-direction: row;
+  margin-top: 16px;
+  padding: 4px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(91, 140, 138, 0.07);
+}
+
+.seg-item {
+  flex: 1;
+  height: 38px;
+  line-height: 38px;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7a78;
+  border-radius: 11px;
+}
+
+.seg-item-on {
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ---- 内容面板 ---- */
+.panel {
+  margin-top: 14px;
+  padding: 18px;
+  min-height: 130px;
+  background-color: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(91, 140, 138, 0.07);
+}
+
+.paragraph {
+  font-size: 14px;
+  color: #5a6a68;
+  line-height: 26px;
+}
+
+.tag-wrap {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .tag {
-  padding: 5px 12px;
-  background-color: #EAF3F2;
-  border: 1px solid #D8E6E4;
-  border-radius: 15px;
+  padding: 6px 14px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
   color: #4A7A78;
-  font-size: 12px;
+  background-color: #EAF3F2;
+  border-radius: 999px;
+}
+
+/* ---- 咨询须知 ---- */
+.notice {
+  margin-top: 14px;
+  padding: 18px;
+  background-color: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(91, 140, 138, 0.07);
+}
+
+.notice-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.notice-bar {
+  width: 4px;
+  height: 15px;
+  border-radius: 2px;
   margin-right: 8px;
+  background-image: linear-gradient(180deg, #5b8c8a 0%, #7fb3b0 100%);
+}
+
+.notice-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #33413f;
+}
+
+.notice-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.notice-line {
+  font-size: 13px;
+  color: #7c8987;
+  line-height: 23px;
   margin-bottom: 8px;
 }
 
-.consultation-notice-container {
-  background-color: #f5f5f5;
-  padding: 20px;
-  margin-top: 20px;
-  border-radius: 5px;
-}
-
-.consultation-notice-title {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.consultation-notice-content {
-  font-size: 14px;
-  color: #666;
-}
-
-.doctor-message-container {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #e8f0fe; /* 医师寄语背景色 */
-  border-radius: 5px;
-}
-
-.doctor-message-title {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.doctor-message-content {
-  font-size: 14px;
-  color: #333;
-}
-
-.consult-now {
-  display: block;
-  width: 100%;
-  height: 40px;
-  line-height: 40px;
-  background-color: #007aff;
-  color: white;
-  text-align: center;
-  border-radius: 5px;
-  margin-top: 30px;
-  font-size: 16px;
-}
-
-
-
-
-.modal {
+/* ---- 底部操作栏 ---- */
+.bottom-bar {
   position: fixed;
-  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px 16px 16px;
+  background-color: #ffffff;
+  box-shadow: 0 -4px 18px rgba(91, 140, 138, 0.10);
+}
+
+.consult-now {
+  width: 100%;
+  height: 48px;
+  line-height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+  box-shadow: 0 6px 16px rgba(91, 140, 138, 0.28);
+}
+
+/* ---- 预约弹窗 ---- */
+.modal {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-color: rgba(24, 38, 36, 0.45);
 }
 
-.modal-content {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 5px;
-  width: 90%;
-  max-width: 300px;
+.sheet {
+  padding: 20px 18px 24px;
+  background-color: #ffffff;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
 }
 
-.modal-header {
+.sheet-head {
   display: flex;
   flex-direction: row;
-  font-weight: bold;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-.date-picker {
-  display: flex;
-  justify-content: space-around;
+.sheet-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #33413f;
+}
+
+.sheet-close {
+  font-size: 16px;
+  color: #b3bdbb;
+  padding: 4px 6px;
+}
+
+.sheet-label {
+  display: block;
+  font-size: 13px;
+  color: #8a9694;
   margin-bottom: 10px;
 }
 
-.date-picker view {
-  cursor: pointer;
-  padding: 5px;
-  border: 1px solid #007aff;
-}
-
-.date-picker view.selected {
-  border-color: green;
-}
-
-.time-picker {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction:row;
-  gap: 10px;
-}
-
-.time-picker view {
-  cursor: pointer;
-  padding: 5px;
-  border: 1px solid #007aff;
-  width: 45%;
-}
-
-.time-picker view.selected {
-  border-color: green;
-}
-
-.time-picker view.unavailable {
-  border-color: gray;
-  color: gray;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
-}
-
-.modal-footer button {
-  padding: 10px 20px;
-  background-color: #007aff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.modal-header {
-  display: flex;
-  flex-direction: column;
-  font-weight: bold;
-}
-
-.smailtabs {
+/* 日期胶囊 */
+.date-row {
   display: flex;
   flex-direction: row;
-  margin-top: 10px;
-  border-bottom: 1px solid #ccc;
+  margin-bottom: 18px;
 }
 
-.tab-item {
+.date-chip {
   flex: 1;
+  margin-right: 10px;
+  padding: 10px 0;
+  border-radius: 14px;
+  background-color: #f4f7f6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.date-chip-on {
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+}
+
+.date-day {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a7a78;
+}
+
+.date-md {
+  font-size: 11px;
+  color: #9aa5a3;
+  margin-top: 4px;
+}
+
+.date-text-on {
+  color: #ffffff;
+}
+
+/* 时间段胶囊 */
+.time-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.time-chip {
+  width: 48%;
+  height: 44px;
+  line-height: 44px;
   text-align: center;
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #33413f;
+  background-color: #f4f7f6;
 }
 
-.tab-item.active {
-  border-bottom-color: #007aff;
+.time-chip-on {
+  color: #ffffff;
+  font-weight: 600;
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
 }
 
+.time-chip-off {
+  color: #c3ccca;
+  background-color: #f7f8f8;
+}
+
+.sheet-btn {
+  width: 100%;
+  height: 46px;
+  line-height: 46px;
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  border: none;
+  border-radius: 23px;
+  background-image: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
+  box-shadow: 0 6px 16px rgba(91, 140, 138, 0.24);
+}
 </style>

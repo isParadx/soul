@@ -3,7 +3,7 @@
     <!-- 顶部导航 -->
     <el-header class="admin-header">
       <div class="header-brand">
-        <span class="brand-icon">◈</span>
+        <img class="brand-icon" :src="logoImg" alt="心灵驿站" />
         <span class="brand-text">心灵驿站 · 管理后台</span>
       </div>
       <div class="header-user">
@@ -88,6 +88,7 @@
 <script>
 import { User, Calendar, SwitchButton, ChatDotRound, Camera } from '@element-plus/icons-vue'
 import { resolveAvatarUrl } from '../../api/axios'
+import logoImg from '@/assets/img/logo.png';
 
 export default {
   name: 'AdminLayout',
@@ -100,6 +101,7 @@ export default {
   },
   data() {
     return {
+      logoImg,
       username: '',
       avatarUrl: '',
       activeMenu: '/master/userinfo'
@@ -217,8 +219,10 @@ export default {
 }
 
 .brand-icon {
-  font-size: 20px;
-  color: #5B8C8A;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .brand-text {

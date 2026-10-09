@@ -17,14 +17,7 @@ import Appointments from '../components/Doctor/Appointments.vue'
 import DocInfo from '../components/Doctor/DocInfo.vue'
 
 
- import CozeChat from '../components/CozeChat/CozeChat.vue';
-
 const routes = [
-   {
-    path: '/CozeChat',
-    name: 'CozeChat',
-    component: CozeChat
-  },
   {
     path: '/',
     name: 'Start',

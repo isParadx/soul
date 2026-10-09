@@ -18,7 +18,7 @@
     <view class="menu">
       <view v-for="(item, index) in menuItems" :key="index" class="menu-item" @click="navigateTo(item.url)">
         <view class="menu-item-left">
-          <text class="menu-icon">{{ item.icon }}</text>
+          <image class="menu-icon" :src="item.icon" mode="aspectFit" />
           <text class="menu-text">{{ item.text }}</text>
         </view>
         <text class="arrow">›</text>
@@ -38,9 +38,9 @@ export default {
       userid: '',
       img: '',
       menuItems: [
-        { icon: '👤', text: '个人信息', url: '/pages/tabbar/Myself/profile/profile' },
-        { icon: '🔒', text: '密码修改', url: '/pages/tabbar/Myself/password/password' },
-        { icon: '💬', text: '意见反馈', url: '/pages/tabbar/Myself/advice/advice' }
+        { icon: '/static/myself/Info.png', text: '个人信息', url: '/pages/tabbar/Myself/profile/profile' },
+        { icon: '/static/myself/password.png', text: '密码修改', url: '/pages/tabbar/Myself/password/password' },
+        { icon: '/static/myself/feedback.png', text: '意见反馈', url: '/pages/tabbar/Myself/advice/advice' }
       ]
     };
   },
@@ -117,8 +117,9 @@ export default {
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(135deg, #5b8c8a 0%, #7fb3b0 100%);
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 22px 20px;
+  box-shadow: 0 10px 26px rgba(91, 140, 138, 0.22);
 }
 
 .hero-left {
@@ -168,10 +169,10 @@ export default {
 /* 菜单 */
 .menu {
   background-color: #ffffff;
-  border-radius: 14px;
+  border-radius: 18px;
   margin-top: 16px;
   padding: 0 16px;
-  box-shadow: 0 2px 12px rgba(91, 140, 138, 0.06);
+  box-shadow: 0 6px 20px rgba(91, 140, 138, 0.08);
 }
 
 .menu-item {
@@ -194,7 +195,8 @@ export default {
 }
 
 .menu-icon {
-  font-size: 17px;
+  width: 22px;
+  height: 22px;
   margin-right: 12px;
 }
 
