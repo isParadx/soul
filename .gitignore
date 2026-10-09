@@ -1,10 +1,3 @@
-# ---- WorkBuddy / AI 助手相关（不纳入版本管理）----
-.workbuddy/
-.claude/
-.cursor/
-.copilot/
-*.genie
-
 # ---- IDE ----
 .idea/
 .vscode/
