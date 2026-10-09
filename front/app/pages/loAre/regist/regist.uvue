@@ -5,10 +5,10 @@
     <input class="uni-input" type="text" v-model="nickname" placeholder="请输入昵称" />
     <input class="uni-input" type="password" v-model="password" placeholder="请输入密码" />
     <input class="uni-input" type="password" v-model="confirmPassword" placeholder="请重复密码" />
-    <picker mode="selector" :range="genders" v-model="genderIndex" @change="onGenderChange">
+    <picker mode="selector" :range="genders" :value="genderIndex" @change="onGenderChange">
       <view class="uni-input">{{ genders[genderIndex] }}</view>
     </picker>
-	<picker mode="selector" :range="roles" v-model="roleIndex" @change="onGenderChange">
+	<picker mode="selector" :range="roles" :value="roleIndex" @change="onRoleChange">
 	  <view class="uni-input">{{ roles[roleIndex] }}</view>
 	</picker>
     <input class="uni-input" type="number" v-model="phone" placeholder="请输入手机号" />
@@ -36,10 +36,13 @@ export default {
   },
   methods: {
     onGenderChange(e) {
-      this.genderIndex = e.detail.value;
+      this.genderIndex = Number(e.detail.value);
+    },
+    onRoleChange(e) {
+      this.roleIndex = Number(e.detail.value);
     },
     register() {
-      if (this.userid=='' || this.nickname || this.password || this.confirmPassword || this.phone) {
+      if (this.userid=='' || this.nickname=='' || this.password=='' || this.confirmPassword=='' || this.phone=='') {
         uni.showToast({
           title: '账号、昵称、密码、重复密码和手机号不能为空',
           icon: 'none'
@@ -68,7 +71,7 @@ export default {
         success: (res) => {
           if (res.data.code !== 200) {
             uni.showToast({
-              title: '注册失败，请重试',
+              title: res.data.message || '注册失败，请重试',
               icon: 'none'
             });
           } else {

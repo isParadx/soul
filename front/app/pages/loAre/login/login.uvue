@@ -40,7 +40,7 @@ export default {
 					console.log(res)
 		            if (res.data.code !== 200) {
 		                uni.showToast({
-		                    title:'账号或密码不正确',
+		                    title: res.data.message || '账号或密码不正确',
 		                    icon:'none'
 		                });
 		            } else {
