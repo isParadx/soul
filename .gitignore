@@ -32,3 +32,6 @@ logs/
 *.swp
 .DS_Store
 Thumbs.db
+
+# ---- 数据库备份 ----
+backup/
